@@ -1,0 +1,636 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dashboard ODP Homepass</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: header + panel upload, filter, 4 KPI, kartu per segment, grafik ODP & homepass, komposisi port, wilayah, top stasiun/vendor, matriks. */
+:root{
+  --bg:#f2f5f9; --surface:#ffffff; --surface2:#f6f8fb; --ink:#0f1b2a; --ink2:#566579; --line:#dce3ec; --grid:#e9eef5;
+  --accent:#257de0; --accent-ink:#ffffff; --accent-soft:#e3eefc;
+  --good:#0b7a3b; --good-bg:#e1f4e8; --bad:#b4232a; --bad-bg:#fdeaea;
+  --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17; --s7:#6a4ce2; --s8:#ec4647;
+  --p1:#84b9f3; --p2:#338ced; --p3:#1b64be; --p4:#0e3d7e;
+  --font-display:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b121b; --surface:#131c28; --surface2:#182231; --ink:#e8eef6; --ink2:#93a3b8; --line:#243244; --grid:#1c2837;
+    --accent:#338ced; --accent-ink:#06111e; --accent-soft:#16283f;
+    --good:#4cc57b; --good-bg:#12291d; --bad:#f0777c; --bad-bg:#321619;
+    --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23; --s7:#9887ef; --s8:#eb6263;
+    --p1:#9dc8f7; --p2:#519ced; --p3:#2370cd; --p4:#1757ac;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b121b; --surface:#131c28; --surface2:#182231; --ink:#e8eef6; --ink2:#93a3b8; --line:#243244; --grid:#1c2837;
+  --accent:#338ced; --accent-ink:#06111e; --accent-soft:#16283f;
+  --good:#4cc57b; --good-bg:#12291d; --bad:#f0777c; --bad-bg:#321619;
+  --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23; --s7:#9887ef; --s8:#eb6263;
+  --p1:#9dc8f7; --p2:#519ced; --p3:#2370cd; --p4:#1757ac;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.wrap{max-width:1240px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;min-width:0}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+
+/* header */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+h1{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-top:6px}
+.formula{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:13px}
+.formula b{font-family:var(--font-display);font-weight:600}
+.formula .op{color:var(--ink2)}
+
+/* upload */
+.upload{display:flex;flex-direction:column;gap:14px;border-style:dashed;border-width:1.5px;transition:border-color .15s,background .15s}
+.upload.drag{border-color:var(--accent);background:var(--accent-soft)}
+.up-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.up-icon{flex:none;width:44px;height:44px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.up-text{flex:1 1 280px;min-width:0}
+.up-text h2{font-size:16px;font-weight:600}
+.up-text p{margin:2px 0 0;color:var(--ink2);font-size:13px;max-width:62ch}
+.up-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 16px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--ink2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.55;cursor:progress}
+.st{display:flex;gap:10px;align-items:flex-start;border-radius:8px;padding:10px 12px;font-size:13px}
+.st[hidden]{display:none}
+.st-ok{background:var(--good-bg);color:var(--good)}
+.st-err{background:var(--bad-bg);color:var(--bad)}
+.st-load{background:var(--surface2);color:var(--ink)}
+.st svg{flex:none;margin-top:2px}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite;margin-top:3px;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--ink2);font-size:12.5px}
+.meta b{color:var(--ink);font-weight:600}
+
+/* filters */
+.filters{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;color:var(--ink2);font-weight:500}
+.field select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:200px;max-width:100%}
+.filters .grow{flex:1}
+.dl{margin-left:auto;display:inline-flex;align-items:center;gap:8px}
+.dl[hidden]{display:none}
+.seg-ctl{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg-ctl button{border:0;background:transparent;padding:8px 14px;cursor:pointer;color:var(--ink2);font-weight:500}
+.seg-ctl button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.kpi{display:flex;flex-direction:column;gap:6px}
+.kpi .lab{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.kpi .val{font-family:var(--font-display);font-size:clamp(28px,3.4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .sub{color:var(--ink2);font-size:12.5px}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hero .lab,.kpi.hero .sub{color:inherit;opacity:.85}
+
+/* section head */
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sec-h h2{font-size:18px;font-weight:600}
+.sec-h p{margin:0;color:var(--ink2);font-size:13px}
+.card-h{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
+.card-h h2{font-size:16px;font-weight:600}
+.card-h p{margin:0;color:var(--ink2);font-size:12.5px}
+
+/* segment cards */
+.segs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.seg{display:flex;flex-direction:column;gap:12px}
+.seg header{display:flex;align-items:flex-start;gap:8px;min-height:2.6em}
+.seg .sw{margin-top:3px}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.seg h3{font-size:13px;font-weight:600;letter-spacing:.03em;flex:1;min-width:0;overflow-wrap:anywhere}
+.seg .pct{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.seg .hp .lab{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.seg .hp b{font-family:var(--font-display);font-size:clamp(24px,2.6vw,30px);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.seg .eq{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.seg .eq b{color:var(--ink);font-weight:600}
+.share{height:6px;border-radius:3px;background:var(--grid);overflow:hidden}
+.share i{display:block;height:100%;border-radius:3px}
+
+/* chart grids */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:14px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+.rows{display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr) minmax(4.5rem,auto);gap:12px;align-items:center}
+.row .lbl{font-size:12.5px;line-height:1.25;overflow-wrap:anywhere}
+.row .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:13px}
+.track{height:18px;display:flex;align-items:center;border-left:1px solid var(--line)}
+.bar{height:100%;display:flex;gap:2px;min-width:2px}
+.bar>span{display:block;height:100%;min-width:2px;flex-basis:0}
+.bar>span:last-child{border-radius:0 4px 4px 0}
+.bar>span:hover,.bar>span:focus-visible{filter:brightness(1.12)}
+.bar.full{width:100%}
+.empty{color:var(--ink2);padding:18px 0;text-align:center}
+
+/* table */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--surface2);font-size:12px;color:var(--ink2);font-weight:600;letter-spacing:.03em}
+tbody tr:last-child td{border-bottom:0}
+td b{font-weight:600;display:block}
+td small{color:var(--ink2);font-size:11.5px}
+tfoot td{background:var(--surface2);font-weight:600}
+td .sw{display:inline-block;vertical-align:-1px;margin-right:8px}
+.muted{color:var(--ink2)}
+
+/* tooltip */
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.45;max-width:260px;white-space:pre-line;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .08s}
+#tip.on{opacity:1}
+#tip strong{display:block;font-weight:600;margin-bottom:2px}
+
+@media (max-width:560px){
+  .row{grid-template-columns:minmax(0,6.6rem) minmax(0,1fr) minmax(3.8rem,auto);gap:8px}
+  .card{padding:16px}
+  .field select{min-width:0;width:100%}
+  .field{flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Jaringan FTTH · ODP Teregistrasi</div>
+      <h1>Dashboard ODP &amp; Homepass</h1>
+    </div>
+    <div class="formula" title="Homepass dihitung dari jumlah port seluruh ODP">
+      <b>Homepass</b><span class="op">=</span><span>ODP</span><span class="op">×</span><span>port</span>
+    </div>
+  </header>
+
+  <section class="card upload" id="dropzone" aria-label="Upload data">
+    <div class="up-main">
+      <div class="up-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      </div>
+      <div class="up-text">
+        <h2>Perbarui data</h2>
+        <p>Tarik file Excel (.xlsx) ke sini atau pilih dari komputer. Angka dihitung ulang di browser Anda. Kolom wajib: <b>Segment</b> dan <b>port</b>. Kolom lain yang dipakai: ODP ID, Region, Stasiun, Vendor Name.</p>
+      </div>
+      <div class="up-actions">
+        <button class="btn primary" id="btn-pick" type="button">Pilih file</button>
+        <button class="btn" id="btn-reset" type="button" hidden>Pakai data awal</button>
+        <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+      </div>
+    </div>
+    <div class="st" id="status" role="status" aria-live="polite" hidden></div>
+    <div class="meta" id="meta"></div>
+  </section>
+
+  <section class="filters" aria-label="Filter">
+    <div class="field"><label for="f-region">Region</label><select id="f-region"></select></div>
+    <div class="field"><label for="f-vendor">Vendor</label><select id="f-vendor"></select></div>
+    <button class="btn" id="btn-clear" type="button" hidden>Hapus filter</button>
+    <button class="btn dl" id="btn-dl" type="button" hidden title="Unduh data yang sedang tampil sebagai file Excel (mengikuti filter yang aktif)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Unduh Excel</button>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Ringkasan"></section>
+
+  <section>
+    <div class="sec-h" style="margin-bottom:12px">
+      <h2>Per segment</h2>
+      <p>Homepass = jumlah port semua ODP di segment tersebut</p>
+    </div>
+    <div class="segs" id="segs"></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><div class="card-h"><h2>Jumlah ODP per segment</h2><p>Satu baris data ODP dihitung satu ODP</p></div><div class="rows" id="c-odp"></div></div>
+    <div class="card"><div class="card-h"><h2>Jumlah homepass per segment</h2><p>Total port (ODP × port)</p></div><div class="rows" id="c-hp"></div></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h"><h2>Komposisi ukuran port per segment</h2><p>Porsi jumlah ODP menurut kapasitas port. Angka di kanan adalah rata-rata port per ODP.</p></div>
+    <div class="legend" id="lg-port"></div>
+    <div class="rows" id="c-mix"></div>
+  </section>
+
+  <section class="sec-h" style="margin-bottom:-8px">
+    <h2>Sebaran wilayah, stasiun, vendor</h2>
+    <div class="seg-ctl" role="group" aria-label="Ukuran yang ditampilkan">
+      <button type="button" id="m-hp" aria-pressed="true">Homepass</button>
+      <button type="button" id="m-odp" aria-pressed="false">ODP</button>
+    </div>
+  </section>
+  <div class="legend" id="lg-seg" style="margin:0"></div>
+
+  <section class="grid2">
+    <div class="card"><div class="card-h"><h2>Per region</h2><p id="t-reg"></p></div><div class="rows" id="c-reg"></div></div>
+    <div class="card"><div class="card-h"><h2>10 stasiun teratas</h2><p id="t-sta"></p></div><div class="rows" id="c-sta"></div></div>
+  </section>
+  <section class="card"><div class="card-h"><h2>10 vendor teratas</h2><p id="t-ven"></p></div><div class="rows" id="c-ven"></div></section>
+
+  <section class="card">
+    <div class="card-h"><h2>Rincian segment × region</h2><p>Homepass di baris atas, jumlah ODP di bawahnya</p></div>
+    <div class="tbl"><table id="matrix"></table></div>
+  </section>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+const BASE = {"meta":{"file":"46e5a646-11.xlsx","sheet":"Raw ODP Teregistrasi","odpRows":181361,"dup":0,"invalid":0,"at":null},"rows":[["AKUSISI ISP","Jabodetabek Banten","Bojonggede","RAFA TEKNOLOGI SOLUSI",8,434],["AKUSISI ISP","Jabodetabek Banten","Bojonggede","RAFA TEKNOLOGI SOLUSI",16,40],["AKUSISI ISP","Jabodetabek Banten","Cigombong","HANDAYANI FIBER MEDIA",8,252],["AKUSISI ISP","Jabodetabek Banten","Cigombong","HANDAYANI FIBER MEDIA",48,3],["AKUSISI ISP","Jabodetabek Banten","Cikoya","ALL NETWORK DIGITAL INDONESIA",16,1311],["AKUSISI ISP","Jabodetabek Banten","Cilegon","FIBER DATA NUSANTARA",4,5],["AKUSISI ISP","Jabodetabek Banten","Cilegon","FIBER DATA NUSANTARA",8,51],["AKUSISI ISP","Jabodetabek Banten","Cilegon","FIBER DATA NUSANTARA",12,1],["AKUSISI ISP","Jabodetabek Banten","Cilegon","FIBER DATA NUSANTARA",14,1],["AKUSISI ISP","Jabodetabek Banten","Cilegon","FIBER DATA NUSANTARA",16,2850],["AKUSISI ISP","Jabodetabek Banten","Dawuan","KONNEK JAYA BERSAMA",8,40],["AKUSISI ISP","Jabodetabek Banten","Duri","INTERNET RAKYAT INDONESIA TERCEPAT",16,1272],["AKUSISI ISP","Jabodetabek Banten","Gang sentiong","KONNEK JAYA BERSAMA",8,189],["AKUSISI ISP","Jabodetabek Banten","Gang sentiong","KONNEK JAYA BERSAMA",16,81],["AKUSISI ISP","Jabodetabek Banten","Kemayoran","KONNEK JAYA BERSAMA",8,539],["AKUSISI ISP","Jabodetabek Banten","Kemayoran","KONNEK JAYA BERSAMA",16,224],["AKUSISI ISP","Jabodetabek Banten","Kosambi","PHATRIA INTI PERSADA",16,832],["AKUSISI ISP","Jabodetabek Banten","Lemahabang","DATANET SOLUSI MAKMUR",8,92],["AKUSISI ISP","Jabodetabek Banten","Lemahabang","DATANET SOLUSI MAKMUR",16,36],["AKUSISI ISP","Jabodetabek Banten","Maja","TELEMEDIA NETWORK CAKRAWALA",16,264],["AKUSISI ISP","Jabodetabek Banten","Parung Panjang","RIZKY DIGITAL SOLUSINDO",8,337],["AKUSISI ISP","Jabodetabek Banten","Parung Panjang","RIZKY DIGITAL SOLUSINDO",16,88],["AKUSISI ISP","Jabodetabek Banten","Poris","ANJANI DIGITAL NUSANTARA",8,117],["AKUSISI ISP","Jabodetabek Banten","Poris","ANJANI DIGITAL NUSANTARA",16,11],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",2,1],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",4,15],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",8,490],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",12,5],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",16,2561],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",18,1],["AKUSISI ISP","Jabodetabek Banten","Tenjo","PUTRA LEBAK BANTEN",24,6],["AKUSISI ISP","Jabodetabek Banten","Tigaraksa","VINMORZA JAYA NUSANTARA",6,1],["AKUSISI ISP","Jabodetabek Banten","Tigaraksa","VINMORZA JAYA NUSANTARA",8,93],["AKUSISI ISP","Jabodetabek Banten","Universitas Indonesia","NETIN DATA PRATAMA",16,60],["AKUSISI ISP","Jawa Barat","Batutulis","MITRA METASTRUKTUR GLOBAL",8,1],["AKUSISI ISP","Jawa Barat","Batutulis","MITRA METASTRUKTUR GLOBAL",16,94],["AKUSISI ISP","Jawa Barat","Batutulis","MITRA METASTRUKTUR GLOBAL",24,10],["AKUSISI ISP","Jawa Barat","Batutulis","MITRA METASTRUKTUR GLOBAL",32,279],["AKUSISI ISP","Jawa Barat","Cangkring","PANGKALAN LINTAS DATA",8,54],["AKUSISI ISP","Jawa Barat","Cikampek","KONNEK JAYA BERSAMA",8,64],["AKUSISI ISP","Jawa Barat","Cikudapateuh","PASS INTERNET INDONESIA",16,415],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",8,30],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",15,1],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",16,654],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",18,1],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",32,5],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",38,1],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",46,1],["AKUSISI ISP","Jawa Barat","Citayam","HANDAYANI FIBER MEDIA",48,52],["AKUSISI ISP","Jawa Barat","Haurgeulis","PANGKALAN LINTAS DATA",8,713],["AKUSISI ISP","Jawa Barat","Jatibarang","PANGKALAN LINTAS DATA",8,91],["AKUSISI ISP","Jawa Barat","Padalarang","QUEEN TECH GLOBAL",8,73],["AKUSISI ISP","Jawa Barat","Padalarang","QUEEN TECH GLOBAL",16,3],["AKUSISI ISP","Jawa Barat","Pasirbungur","DATANET SOLUSI MAKMUR",8,219],["AKUSISI ISP","Jawa Barat","Pasirbungur","DATANET SOLUSI MAKMUR",16,43],["AKUSISI ISP","Jawa Barat","Pegaden Baru","PANGKALAN LINTAS DATA",8,59],["AKUSISI ISP","Jawa Barat","Purwakarta","DATANET SOLUSI MAKMUR",8,90],["AKUSISI ISP","Jawa Barat","Purwakarta","DATANET SOLUSI MAKMUR",15,1],["AKUSISI ISP","Jawa Barat","Purwakarta","DATANET SOLUSI MAKMUR",16,41],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",2,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",3,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",4,2],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",5,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",7,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",8,2],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",10,2],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",11,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",12,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",14,1],["AKUSISI ISP","Jawa Barat","Purwakarta","LENTERA ABADI SOLUSINET",16,46],["AKUSISI ISP","Jawa Barat","Terisi","PANGKALAN LINTAS DATA",8,64],["AKUSISI ISP","Jawa Tengah","Balapulang","SAMARRA ALAMSAH BERKAH",8,81],["AKUSISI ISP","Jawa Tengah","Brebes","PASS INTERNET INDONESIA",16,416],["AKUSISI ISP","Jawa Tengah","Cepu","BERKAT BERSAMA TEKNIK",8,425],["AKUSISI ISP","Jawa Tengah","Cepu","BERKAT BERSAMA TEKNIK",16,231],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",8,73],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",10,4],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",13,1],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",16,135],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",17,1],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",18,2],["AKUSISI ISP","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",20,1],["AKUSISI ISP","Jawa Tengah","Gubug","JARING SOLUSI PERSADA",16,234],["AKUSISI ISP","Jawa Tengah","Pekalongan","JARING SOLUSI PERSADA",16,813],["AKUSISI ISP","Jawa Tengah","Pemalang","PHATRIA INTI PERSADA",8,104],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",8,114],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",10,6],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",12,2],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",16,340],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",18,1],["AKUSISI ISP","Jawa Tengah","Purwosari","LINGKAR KABEL TELEKOMUNIKASI",24,1],["AKUSISI ISP","Jawa Tengah","Salem","JARING SOLUSI PERSADA",16,336],["AKUSISI ISP","Jawa Timur","Blimbing","SKYNET LINTAS NUSANTARA",8,64],["AKUSISI ISP","Jawa Timur","Bojonegoro","BERKAT BERSAMA TEKNIK",8,1287],["AKUSISI ISP","Jawa Timur","Bojonegoro","BERKAT BERSAMA TEKNIK",16,642],["AKUSISI ISP","Jawa Timur","Lawang","SKYNET LINTAS NUSANTARA",8,377],["AKUSISI ISP","Jawa Timur","Madiun","OLEAN PERMATA TELEMATIKA",8,124],["AKUSISI ISP","Jawa Timur","Madiun","OLEAN PERMATA TELEMATIKA",16,253],["AKUSISI ISP","Jawa Timur","Pasuruan","BERKAT BERSAMA TEKNIK",8,284],["AKUSISI ISP","Jawa Timur","Pasuruan","BERKAT BERSAMA TEKNIK",16,159],["AKUSISI ISP","Jawa Timur","Tulungagung","JARING SOLUSI PERSADA",16,741],["BACKBONE PERCEPATAN","Jabodetabek Banten","Bekasi Timur","NURIZ BERKAH ABADI",8,33],["BACKBONE PERCEPATAN","Jabodetabek Banten","Bogor","ESKA GLOBAL PERSADA",8,32],["BACKBONE PERCEPATAN","Jabodetabek Banten","Catang","FAJAR MITRA KRIDA ABADI",8,40],["BACKBONE PERCEPATAN","Jabodetabek Banten","Cilejit","FAJAR MITRA KRIDA ABADI",8,11],["BACKBONE PERCEPATAN","Jabodetabek Banten","Daru","METRO DUTA SELARAS",8,6],["BACKBONE PERCEPATAN","Jabodetabek Banten","Duri","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jabodetabek Banten","Klender Baru","NURIZ BERKAH ABADI",8,132],["BACKBONE PERCEPATAN","Jabodetabek Banten","Palmerah","FREDY NUGROHO",8,46],["BACKBONE PERCEPATAN","Jabodetabek Banten","Parung Panjang","FAJAR MITRA KRIDA ABADI",8,37],["BACKBONE PERCEPATAN","Jabodetabek Banten","Parung Panjang","METRO DUTA SELARAS",8,4],["BACKBONE PERCEPATAN","Jabodetabek Banten","Tambun","FAJAR MITRA KRIDA ABADI",8,5],["BACKBONE PERCEPATAN","Jabodetabek Banten","Tambun","NURIZ BERKAH ABADI",8,44],["BACKBONE PERCEPATAN","Jabodetabek Banten","Tanah Abang","FREDY NUGROHO",8,15],["BACKBONE PERCEPATAN","Jabodetabek Banten","Tenjo","FAJAR MITRA KRIDA ABADI",8,2],["BACKBONE PERCEPATAN","Jabodetabek Banten","Tenjo","METRO DUTA SELARAS",8,17],["BACKBONE PERCEPATAN","Jawa Barat","Awipari","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,32],["BACKBONE PERCEPATAN","Jawa Barat","Babakan","CHARA ABADI SEJAHTERA",8,469],["BACKBONE PERCEPATAN","Jawa Barat","Babakan","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,24],["BACKBONE PERCEPATAN","Jawa Barat","Bumiwaluya","FAJAR MITRA KRIDA ABADI",8,17],["BACKBONE PERCEPATAN","Jawa Barat","Bumiwaluya","WANWAN DIKDIK",8,9],["BACKBONE PERCEPATAN","Jawa Barat","Cianjur","WANWAN DIKDIK",8,7],["BACKBONE PERCEPATAN","Jawa Barat","Ciawi","FAJAR MITRA KRIDA ABADI",8,70],["BACKBONE PERCEPATAN","Jawa Barat","Cibatu","FAJAR MITRA KRIDA ABADI",8,252],["BACKBONE PERCEPATAN","Jawa Barat","Cikampek","FAJAR MITRA KRIDA ABADI",8,10],["BACKBONE PERCEPATAN","Jawa Barat","Ciledug","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,24],["BACKBONE PERCEPATAN","Jawa Barat","Cipeundeuy","FAJAR MITRA KRIDA ABADI",8,2],["BACKBONE PERCEPATAN","Jawa Barat","Cipeundeuy","WANWAN DIKDIK",8,2],["BACKBONE PERCEPATAN","Jawa Barat","Cipeuyeum","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Barat","Cipeuyeum","TRIZA PRATAMA",8,1],["BACKBONE PERCEPATAN","Jawa Barat","Cipeuyeum","WANWAN DIKDIK",8,36],["BACKBONE PERCEPATAN","Jawa Barat","Ciranjang","FAJAR MITRA KRIDA ABADI",8,2],["BACKBONE PERCEPATAN","Jawa Barat","Ciranjang","WANWAN DIKDIK",8,14],["BACKBONE PERCEPATAN","Jawa Barat","Cirebon Prujakan","CHARA ABADI SEJAHTERA",8,122],["BACKBONE PERCEPATAN","Jawa Barat","Cisomang","FAJAR MITRA KRIDA ABADI",8,2],["BACKBONE PERCEPATAN","Jawa Barat","Cisomang","TIGA NOVA SENTOSA",8,7],["BACKBONE PERCEPATAN","Jawa Barat","Indihiang","CAHAYA DUA PUTRA",8,15],["BACKBONE PERCEPATAN","Jawa Barat","Indihiang","DUTA ANUGRAH DAMAI SEJAHTERA",8,4],["BACKBONE PERCEPATAN","Jawa Barat","Indihiang","FAJAR MITRA KRIDA ABADI",8,30],["BACKBONE PERCEPATAN","Jawa Barat","Indihiang","RADHIKA JAYA PRATAMA",8,32],["BACKBONE PERCEPATAN","Jawa Barat","Karangpucung","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,48],["BACKBONE PERCEPATAN","Jawa Barat","Karangsari Jawa Barat","FAJAR MITRA KRIDA ABADI",8,52],["BACKBONE PERCEPATAN","Jawa Barat","Karangsuwung","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,16],["BACKBONE PERCEPATAN","Jawa Barat","Lebakjero","CLOVER TECH DIGITAL",8,127],["BACKBONE PERCEPATAN","Jawa Barat","Lebakjero","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Barat","Maleber","FAJAR MITRA KRIDA ABADI",8,3],["BACKBONE PERCEPATAN","Jawa Barat","Maleber","PERSONEL ALIH DAYA",8,13],["BACKBONE PERCEPATAN","Jawa Barat","Pasirjengkol","PUTRA TELEKOMUNIKASI INDONESIA",8,1],["BACKBONE PERCEPATAN","Jawa Barat","Pasirjengkol","WANWAN DIKDIK",8,11],["BACKBONE PERCEPATAN","Jawa Barat","Rajapolah","FAJAR MITRA KRIDA ABADI",8,169],["BACKBONE PERCEPATAN","Jawa Barat","Sasaksaat","TIGA NOVA SENTOSA",8,1],["BACKBONE PERCEPATAN","Jawa Barat","Tasikmalaya","FAJAR MITRA KRIDA ABADI",8,84],["BACKBONE PERCEPATAN","Jawa Barat","Tasikmalaya","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,223],["BACKBONE PERCEPATAN","Jawa Barat","Wanaraja","FAJAR MITRA KRIDA ABADI",8,9],["BACKBONE PERCEPATAN","Jawa Barat","Wanaraja","NUSA BAKTI KOMUNIKA",8,4],["BACKBONE PERCEPATAN","Jawa Barat","Wanaraja","WANWAN DIKDIK",8,20],["BACKBONE PERCEPATAN","Jawa Barat","Waruduwur","CHARA ABADI SEJAHTERA",8,406],["BACKBONE PERCEPATAN","Jawa Barat","Waruduwur","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,39],["BACKBONE PERCEPATAN","Jawa Barat","Warung bandrek","CLOVER TECH DIGITAL",8,12],["BACKBONE PERCEPATAN","Jawa Barat","Warung bandrek","FAJAR MITRA KRIDA ABADI",8,31],["BACKBONE PERCEPATAN","Jawa Tengah","Balapulang","IDKO ECO JAYA ENERGI",8,7],["BACKBONE PERCEPATAN","Jawa Tengah","Butuh","IDKO ECO JAYA ENERGI",8,24],["BACKBONE PERCEPATAN","Jawa Tengah","Doplang","KEDIREN NET MEDIA BLORA",8,159],["BACKBONE PERCEPATAN","Jawa Tengah","Doplang","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,5],["BACKBONE PERCEPATAN","Jawa Tengah","Gandrungmangun","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,47],["BACKBONE PERCEPATAN","Jawa Tengah","Gawok","FAJAR MITRA KRIDA ABADI",8,5],["BACKBONE PERCEPATAN","Jawa Tengah","Gawok","LINGKAR KABEL TELEKOMUNIKASI",8,56],["BACKBONE PERCEPATAN","Jawa Tengah","Gubug","ARIOSY SADIA RESWARA",8,253],["BACKBONE PERCEPATAN","Jawa Tengah","Gumilir","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,9],["BACKBONE PERCEPATAN","Jawa Tengah","Gumilir","LINGKUP TOTAL TECHNOLOGY",8,111],["BACKBONE PERCEPATAN","Jawa Tengah","Jenar","FAJAR MITRA KRIDA ABADI",8,207],["BACKBONE PERCEPATAN","Jawa Tengah","Jerakah","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,60],["BACKBONE PERCEPATAN","Jawa Tengah","Jerakah","RENALDI",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Kalioso","FAJAR MITRA KRIDA ABADI",8,92],["BACKBONE PERCEPATAN","Jawa Tengah","Kapuan","BERKAH INTER GENERATION",8,102],["BACKBONE PERCEPATAN","Jawa Tengah","Kapuan","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,47],["BACKBONE PERCEPATAN","Jawa Tengah","Karang gandul","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,9],["BACKBONE PERCEPATAN","Jawa Tengah","Karangjati","ARIOSY SADIA RESWARA",8,144],["BACKBONE PERCEPATAN","Jawa Tengah","Karangkandri","LINGKUP TOTAL TECHNOLOGY",8,48],["BACKBONE PERCEPATAN","Jawa Tengah","Karangsari Jawa Tengah","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Karangsari Jawa Tengah","TUJUH SINAR ABADI",8,22],["BACKBONE PERCEPATAN","Jawa Tengah","Karangsono","ARIOSY SADIA RESWARA",8,87],["BACKBONE PERCEPATAN","Jawa Tengah","Karangsono","FAJAR MITRA KRIDA ABADI",8,42],["BACKBONE PERCEPATAN","Jawa Tengah","Kebonromo","FAJAR MITRA KRIDA ABADI",8,52],["BACKBONE PERCEPATAN","Jawa Tengah","Kebumen","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Kedundang","FAJAR MITRA KRIDA ABADI",8,32],["BACKBONE PERCEPATAN","Jawa Tengah","Kedungbanteng","FAJAR MITRA KRIDA ABADI",8,14],["BACKBONE PERCEPATAN","Jawa Tengah","Kemiri","ARIOSY SADIA RESWARA",8,18],["BACKBONE PERCEPATAN","Jawa Tengah","Kemiri","FAJAR MITRA KRIDA ABADI",8,52],["BACKBONE PERCEPATAN","Jawa Tengah","Kemiri","LINGKAR KABEL TELEKOMUNIKASI",8,9],["BACKBONE PERCEPATAN","Jawa Tengah","Kepuh","LINGKAR KABEL TELEKOMUNIKASI",8,19],["BACKBONE PERCEPATAN","Jawa Tengah","Klaten","FAJAR MITRA KRIDA ABADI",8,117],["BACKBONE PERCEPATAN","Jawa Tengah","Klaten","SAMUDERA EMAS NUSANTARA",8,40],["BACKBONE PERCEPATAN","Jawa Tengah","Legok","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,33],["BACKBONE PERCEPATAN","Jawa Tengah","Legok","TUJUH SINAR ABADI",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Lempuyangan","AKSES ARTHA MEDIA",8,14],["BACKBONE PERCEPATAN","Jawa Tengah","Lempuyangan","FAJAR MITRA KRIDA ABADI",8,29],["BACKBONE PERCEPATAN","Jawa Tengah","Maguwo","AKSES ARTHA MEDIA",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Maguwo","ARIOSY SADIA RESWARA",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Maguwo","FAJAR MITRA KRIDA ABADI",8,19],["BACKBONE PERCEPATAN","Jawa Tengah","Mangkang","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",4,1],["BACKBONE PERCEPATAN","Jawa Tengah","Mangkang","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,98],["BACKBONE PERCEPATAN","Jawa Tengah","Mangkang","RENALDI",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Margasari","IDKO ECO JAYA ENERGI",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Margasari","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Masaran","FAJAR MITRA KRIDA ABADI",8,7],["BACKBONE PERCEPATAN","Jawa Tengah","Masaran","TRI AKSES NUSANTARA",8,72],["BACKBONE PERCEPATAN","Jawa Tengah","Ngrombo","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,140],["BACKBONE PERCEPATAN","Jawa Tengah","Notog","AZZAHRA RAJAWALI MAKMUR",8,14],["BACKBONE PERCEPATAN","Jawa Tengah","Palur","LINGKAR KABEL TELEKOMUNIKASI",8,23],["BACKBONE PERCEPATAN","Jawa Tengah","Panunggalan","BERKAH INTER GENERATION",8,118],["BACKBONE PERCEPATAN","Jawa Tengah","Panunggalan","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,30],["BACKBONE PERCEPATAN","Jawa Tengah","Pasarnguter","FAJAR MITRA KRIDA ABADI",8,109],["BACKBONE PERCEPATAN","Jawa Tengah","Pasarnguter","GOLDEN NETWORK NUSANTARA",8,6],["BACKBONE PERCEPATAN","Jawa Tengah","Pasarnguter","LINGKAR KABEL TELEKOMUNIKASI",8,38],["BACKBONE PERCEPATAN","Jawa Tengah","Pasarnguter","SEMESTA PUSAT KREASI",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Patukan","FAJAR MITRA KRIDA ABADI",8,88],["BACKBONE PERCEPATAN","Jawa Tengah","Prembun","FAJAR MITRA KRIDA ABADI",8,9],["BACKBONE PERCEPATAN","Jawa Tengah","Purwokerto","AZZAHRA RAJAWALI MAKMUR",8,76],["BACKBONE PERCEPATAN","Jawa Tengah","Purwokerto","FAJAR MITRA KRIDA ABADI",8,83],["BACKBONE PERCEPATAN","Jawa Tengah","Purwokerto","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,49],["BACKBONE PERCEPATAN","Jawa Tengah","Rewulu","FAJAR MITRA KRIDA ABADI",8,40],["BACKBONE PERCEPATAN","Jawa Tengah","Rewulu","JAMBON ELEKTRIK UTAMA",8,5],["BACKBONE PERCEPATAN","Jawa Tengah","Salem","FAJAR MITRA KRIDA ABADI",8,89],["BACKBONE PERCEPATAN","Jawa Tengah","Sentolo","FAJAR MITRA KRIDA ABADI",8,132],["BACKBONE PERCEPATAN","Jawa Tengah","Sidareja","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,46],["BACKBONE PERCEPATAN","Jawa Tengah","Sikampuh","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,46],["BACKBONE PERCEPATAN","Jawa Tengah","Slawi","IDKO ECO JAYA ENERGI",8,485],["BACKBONE PERCEPATAN","Jawa Tengah","Slawi","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,13],["BACKBONE PERCEPATAN","Jawa Tengah","Soka","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Solo Balapan","FAJAR MITRA KRIDA ABADI",8,74],["BACKBONE PERCEPATAN","Jawa Tengah","Solo Balapan","SAMUDERA EMAS NUSANTARA",8,22],["BACKBONE PERCEPATAN","Jawa Tengah","Solo Kota","FAJAR MITRA KRIDA ABADI",8,40],["BACKBONE PERCEPATAN","Jawa Tengah","Solo Kota","SAMUDERA EMAS NUSANTARA",8,44],["BACKBONE PERCEPATAN","Jawa Tengah","Sragen","FAJAR MITRA KRIDA ABADI",8,40],["BACKBONE PERCEPATAN","Jawa Tengah","Sragi","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,4],["BACKBONE PERCEPATAN","Jawa Tengah","Sruweng","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Tengah","Sukoharjo","FAJAR MITRA KRIDA ABADI",8,2],["BACKBONE PERCEPATAN","Jawa Tengah","Sukoharjo","LINGKAR KABEL TELEKOMUNIKASI",8,40],["BACKBONE PERCEPATAN","Jawa Tengah","Telawa","ARIOSY SADIA RESWARA",8,77],["BACKBONE PERCEPATAN","Jawa Tengah","Telawa","ARIOSY SADIA RESWARA",16,35],["BACKBONE PERCEPATAN","Jawa Tengah","Telawa","FAJAR MITRA KRIDA ABADI",8,123],["BACKBONE PERCEPATAN","Jawa Tengah","Wates","FAJAR MITRA KRIDA ABADI",8,107],["BACKBONE PERCEPATAN","Jawa Tengah","Wates","JAMBON ELEKTRIK UTAMA",8,33],["BACKBONE PERCEPATAN","Jawa Tengah","Wojo","FAJAR MITRA KRIDA ABADI",8,57],["BACKBONE PERCEPATAN","Jawa Timur","Benowo","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,16],["BACKBONE PERCEPATAN","Jawa Timur","Benowo","SINAR MODERN",8,20],["BACKBONE PERCEPATAN","Jawa Timur","Blitar","FAJAR MITRA KRIDA ABADI",8,36],["BACKBONE PERCEPATAN","Jawa Timur","Blitar","JAYAHANA MUNAURA MEKANIKA SELARAS",8,13],["BACKBONE PERCEPATAN","Jawa Timur","Bojonegoro","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,4],["BACKBONE PERCEPATAN","Jawa Timur","Kediri","FAJAR MITRA KRIDA ABADI",8,61],["BACKBONE PERCEPATAN","Jawa Timur","Kediri","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,16],["BACKBONE PERCEPATAN","Jawa Timur","Kedunggalar","FAJAR MITRA KRIDA ABADI",8,12],["BACKBONE PERCEPATAN","Jawa Timur","Kedunggalar","MAWAH MITRA MANDIRI",8,7],["BACKBONE PERCEPATAN","Jawa Timur","Kepanjen","DUTA ANUGRAH DAMAI SEJAHTERA",8,5],["BACKBONE PERCEPATAN","Jawa Timur","Kepanjen","FAJAR MITRA KRIDA ABADI",8,10],["BACKBONE PERCEPATAN","Jawa Timur","Kepanjen","GARUDA MITRA SOLUSI",8,9],["BACKBONE PERCEPATAN","Jawa Timur","Kepanjen","PUTRA TELEKOMUNIKASI INDONESIA",8,2],["BACKBONE PERCEPATAN","Jawa Timur","Leces","KOPERASI PEGAWAI INDOSAT KOPINDOSAT",8,11],["BACKBONE PERCEPATAN","Jawa Timur","Malang Kota Lama","FAJAR MITRA KRIDA ABADI",8,25],["BACKBONE PERCEPATAN","Jawa Timur","Malang Kota Lama","KHATULISTIWA JARINGAN NUSATECH",8,2],["BACKBONE PERCEPATAN","Jawa Timur","Ngadiluwih","FAJAR MITRA KRIDA ABADI",8,16],["BACKBONE PERCEPATAN","Jawa Timur","Ngawi","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Timur","Ngawi","MAWAH MITRA MANDIRI",8,4],["BACKBONE PERCEPATAN","Jawa Timur","Ngebruk","FAJAR MITRA KRIDA ABADI",8,27],["BACKBONE PERCEPATAN","Jawa Timur","Pakisaji","DUTA ANUGRAH DAMAI SEJAHTERA",8,18],["BACKBONE PERCEPATAN","Jawa Timur","Pakisaji","FAJAR MITRA KRIDA ABADI",8,29],["BACKBONE PERCEPATAN","Jawa Timur","Pakisaji","GARUDA MITRA SOLUSI",8,5],["BACKBONE PERCEPATAN","Jawa Timur","Pakisaji","LINGKUP TOTAL TECHNOLOGY",8,1],["BACKBONE PERCEPATAN","Jawa Timur","Pasuruan","ERAJAYA MAKMUR PERKASA",8,30],["BACKBONE PERCEPATAN","Jawa Timur","Pohgajih","DUTA ANUGRAH DAMAI SEJAHTERA",8,12],["BACKBONE PERCEPATAN","Jawa Timur","Pohgajih","FAJAR MITRA KRIDA ABADI",8,1],["BACKBONE PERCEPATAN","Jawa Timur","Sumberpucung","FAJAR MITRA KRIDA ABADI",8,29],["BACKBONE PERCEPATAN","Jawa Timur","Susuhan","LINGKUP TOTAL TECHNOLOGY",8,84],["BACKBONE PERCEPATAN","Jawa Timur","Walikukun","FAJAR MITRA KRIDA ABADI",8,4],["FTTH KALIMANTAN","Kalimantan","DANAU SENTARUM (PONTIANAK)","SOLUSI SINERGI BORNEO_FIBERHOME TECHNOLOGIES INDONESIA",8,205],["FTTH KALIMANTAN","Kalimantan","PERDANA (PONTIANAK)","SOLUSI SINERGI BORNEO_KONEKTIVITAS DIGITAL KALIMANTAN",8,1042],["FTTH REGULER","Jabodetabek Banten","Batuceper","DAPOER POESAT NOESANTARA GROUP",8,640],["FTTH REGULER","Jabodetabek Banten","Batuceper","DIGITAL ANDALAN SOLUSI",8,64],["FTTH REGULER","Jabodetabek Banten","Bekasi","MEGA ARTHA CARAKA",8,64],["FTTH REGULER","Jabodetabek Banten","Bekasi","SEMANGAT MEDIATAMA",8,64],["FTTH REGULER","Jabodetabek Banten","Bekasi","WIDIA KARYA ERA MANDIRI UTAMA",8,169],["FTTH REGULER","Jabodetabek Banten","Bekasi Timur","FIBEART TRANS NETWORK",8,48],["FTTH REGULER","Jabodetabek Banten","Bekasi Timur","KRESA UTAMA MANDIRI",8,625],["FTTH REGULER","Jabodetabek Banten","Bekasi Timur","NURIZ BERKAH ABADI",8,64],["FTTH REGULER","Jabodetabek Banten","Bekasi Timur","PEMERSATU WIFI NUSANTARA",8,64],["FTTH REGULER","Jabodetabek Banten","Bekasi Timur","POLARISNET",8,40],["FTTH REGULER","Jabodetabek Banten","Bogasari","TRITUNAS PUTRA NUSANTARA",8,96],["FTTH REGULER","Jabodetabek Banten","Bogor","BINTANG TERANG DELAPAN SEMBILAN",8,40],["FTTH REGULER","Jabodetabek Banten","Bogor","KASIH RAJAWALI SEJAHTERA",8,816],["FTTH REGULER","Jabodetabek Banten","Bogor","KONSULTASI INDONESIA KANADA",8,199],["FTTH REGULER","Jabodetabek Banten","Bogor","TOKO NETWORK",8,40],["FTTH REGULER","Jabodetabek Banten","Bojong Indah","DAPOER POESAT NOESANTARA GROUP",8,40],["FTTH REGULER","Jabodetabek Banten","Bojong Indah","TRISULA MEGAH JAYA",8,40],["FTTH REGULER","Jabodetabek Banten","Bojonggede","ERAJAYA MAKMUR PERKASA",8,51],["FTTH REGULER","Jabodetabek Banten","Buaran","KRESA UTAMA MANDIRI",8,250],["FTTH REGULER","Jabodetabek Banten","Buaran","PEMERSATU WIFI NUSANTARA",8,64],["FTTH REGULER","Jabodetabek Banten","Cakung","NURIZ BERKAH ABADI",8,864],["FTTH REGULER","Jabodetabek Banten","Cakung","SALWA CITRA MANDIRI",8,441],["FTTH REGULER","Jabodetabek Banten","Catang","PLANET HARAPAN PENUH ENERGY",8,192],["FTTH REGULER","Jabodetabek Banten","Cawang","FANIZ AMANAT BERSAMA",8,640],["FTTH REGULER","Jabodetabek Banten","Cibadak","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jabodetabek Banten","Cibadak","HANDAYANI FIBER MEDIA",8,76],["FTTH REGULER","Jabodetabek Banten","Cibadak","J & JC CONSULTING",8,83],["FTTH REGULER","Jabodetabek Banten","Cibinong","NABAWI NETWORK INDONESIA",8,1296],["FTTH REGULER","Jabodetabek Banten","Cicayur","ALIGATOR FIBER OPTIC",8,169],["FTTH REGULER","Jabodetabek Banten","Cicurug","HANDAYANI FIBER MEDIA",8,54],["FTTH REGULER","Jabodetabek Banten","Cicurug","J & JC CONSULTING",8,76],["FTTH REGULER","Jabodetabek Banten","Cigading","SAPUTRA GLOBAL NUSANTARA",8,328],["FTTH REGULER","Jabodetabek Banten","Cigombong","HANDAYANI FIBER MEDIA",8,426],["FTTH REGULER","Jabodetabek Banten","Cigombong","HANDAYANI FIBER MEDIA",16,4],["FTTH REGULER","Jabodetabek Banten","Cikarang","RIA KUSUMAH BERSAMA",8,252],["FTTH REGULER","Jabodetabek Banten","Cikeusal","PLANET HARAPAN PENUH ENERGY",8,192],["FTTH REGULER","Jabodetabek Banten","Cikoya","DAPOER POESAT NOESANTARA GROUP",8,104],["FTTH REGULER","Jabodetabek Banten","Cilegon","BIMASAKTI SELULAR INDONESIA",8,76],["FTTH REGULER","Jabodetabek Banten","Cilegon","GARUDA PRIMA SEKAWAN",8,56],["FTTH REGULER","Jabodetabek Banten","Cilegon","MEDIA AKSES INDONESIA",8,64],["FTTH REGULER","Jabodetabek Banten","Cilegon","PLANET HARAPAN PENUH ENERGY",8,64],["FTTH REGULER","Jabodetabek Banten","Cilejit","DIGITAL ANDALAN SOLUSI",8,128],["FTTH REGULER","Jabodetabek Banten","Cipinang","ASSET RECOVERY INDONESIA",8,64],["FTTH REGULER","Jabodetabek Banten","Cipinang","AWAN PUTRA KUSUMA",8,40],["FTTH REGULER","Jabodetabek Banten","Cipinang","RIA KUSUMAH BERSAMA",8,128],["FTTH REGULER","Jabodetabek Banten","Cisaat","HANDAYANI FIBER MEDIA",8,384],["FTTH REGULER","Jabodetabek Banten","Cisaat","QUEENSHA MIKAILA RAHAYU",8,64],["FTTH REGULER","Jabodetabek Banten","Cisauk","DAPOER POESAT NOESANTARA GROUP",8,70],["FTTH REGULER","Jabodetabek Banten","Cisauk","DIGITAL ANDALAN SOLUSI",8,64],["FTTH REGULER","Jabodetabek Banten","Cisauk","DWI PILAR PRATAMA",8,40],["FTTH REGULER","Jabodetabek Banten","Citeras","PRADIKTA UNGGUL PERKASA",8,40],["FTTH REGULER","Jabodetabek Banten","Daru","ARBYAN ELEKTRINDO PERSADA",8,40],["FTTH REGULER","Jabodetabek Banten","Daru","METRO DUTA SELARAS",8,192],["FTTH REGULER","Jabodetabek Banten","Dawuan","SEMPUR JAYA",8,64],["FTTH REGULER","Jabodetabek Banten","Depok","INDOMITRA TEKNOLOGI GROUP",8,40],["FTTH REGULER","Jabodetabek Banten","Depok Baru","INDOMITRA TEKNOLOGI GROUP",8,40],["FTTH REGULER","Jabodetabek Banten","Duren Kalibata","ARJI TECH INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Duren Kalibata","BINA UPAYA SEMESTA",8,180],["FTTH REGULER","Jabodetabek Banten","Grogol","DAPOER POESAT NOESANTARA GROUP",8,47],["FTTH REGULER","Jabodetabek Banten","Grogol","TRIJAYA MAJU TOTALINDO",8,196],["FTTH REGULER","Jabodetabek Banten","Jakarta Kota","INTERINDO OETAMA NEOTEKNOLOGI",8,40],["FTTH REGULER","Jabodetabek Banten","Jakarta Kota","PERSONEL ALIH DAYA",8,64],["FTTH REGULER","Jabodetabek Banten","Jambu Baru","PLANET HARAPAN PENUH ENERGY",8,191],["FTTH REGULER","Jabodetabek Banten","Jayakarta","DELAPAN UNSUR INTI TAMA",8,93],["FTTH REGULER","Jabodetabek Banten","Jayakarta","POLARISNET",8,40],["FTTH REGULER","Jabodetabek Banten","Juanda","CAKRAWALA SOLUSI NUSANTARA",8,40],["FTTH REGULER","Jabodetabek Banten","Jurangmangu","BINA UPAYA SEMESTA",8,128],["FTTH REGULER","Jabodetabek Banten","Jurangmangu","BINA UPAYA SEMESTA",16,40],["FTTH REGULER","Jabodetabek Banten","Jurangmangu","TERUS RAIH PRESTASI",8,64],["FTTH REGULER","Jabodetabek Banten","Kalideres","BERATHI",8,2500],["FTTH REGULER","Jabodetabek Banten","Kalideres","DIGITAL ANDALAN SOLUSI",8,587],["FTTH REGULER","Jabodetabek Banten","Kampung Bandan","AYUBEE LOGAM PERKASA",8,40],["FTTH REGULER","Jabodetabek Banten","Karang Tengah","HANDAYANI FIBER MEDIA",8,66],["FTTH REGULER","Jabodetabek Banten","Karang Tengah","QUEENSHA MIKAILA RAHAYU",8,104],["FTTH REGULER","Jabodetabek Banten","Karangantu","SARANA MANDIRI USAHA UNGGUL",8,361],["FTTH REGULER","Jabodetabek Banten","Karet","HARAPAN USAHA BHAKTI",8,64],["FTTH REGULER","Jabodetabek Banten","Kebayoran","DWI WAHYUDI",8,40],["FTTH REGULER","Jabodetabek Banten","Kebayoran","FANIZ AMANAT BERSAMA",8,957],["FTTH REGULER","Jabodetabek Banten","Kedunggedeh","AYUBEE LOGAM PERKASA",8,40],["FTTH REGULER","Jabodetabek Banten","Kedunggedeh","CAHAYA TEKNO UNIVERSA",8,204],["FTTH REGULER","Jabodetabek Banten","Kedunggedeh","SUNRISE INTERNUSA",8,40],["FTTH REGULER","Jabodetabek Banten","Kemayoran","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jabodetabek Banten","Kemayoran","SECURINDO MITRA SEJATI",8,40],["FTTH REGULER","Jabodetabek Banten","Klender","CITRA TUNGGAL ABADI",8,40],["FTTH REGULER","Jabodetabek Banten","Klender","DAYA GUNA KARSA",8,40],["FTTH REGULER","Jabodetabek Banten","Klender","SALWA CITRA MANDIRI",8,1115],["FTTH REGULER","Jabodetabek Banten","Klender Baru","KRESA UTAMA MANDIRI",8,460],["FTTH REGULER","Jabodetabek Banten","Klender Baru","PEMERSATU WIFI NUSANTARA",8,64],["FTTH REGULER","Jabodetabek Banten","Klender Baru","SALWA CITRA MANDIRI",8,764],["FTTH REGULER","Jabodetabek Banten","Klender Baru","SATIO BINTANG ANDALAS",8,40],["FTTH REGULER","Jabodetabek Banten","Kosambi","CAHAYA TEKNO UNIVERSA",8,64],["FTTH REGULER","Jabodetabek Banten","Kosambi","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jabodetabek Banten","Kosambi","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jabodetabek Banten","Kosambi","KASIH RAJAWALI SEJAHTERA",8,361],["FTTH REGULER","Jabodetabek Banten","Kranji","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jabodetabek Banten","Kranji","SEMANGAT MEDIATAMA",8,76],["FTTH REGULER","Jabodetabek Banten","Kranji","SINERGI SELARAS TEKNOLOGI",8,48],["FTTH REGULER","Jabodetabek Banten","Krenceng","SAPUTRA GLOBAL NUSANTARA",8,389],["FTTH REGULER","Jabodetabek Banten","Lemahabang","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jabodetabek Banten","Lemahabang","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jabodetabek Banten","Lemahabang","JASIKOM INDONESIA",8,692],["FTTH REGULER","Jabodetabek Banten","Lemahabang","SUNRISE INTERNUSA",8,40],["FTTH REGULER","Jabodetabek Banten","Lenteng Agung","DAPOER POESAT NOESANTARA GROUP",8,64],["FTTH REGULER","Jabodetabek Banten","Lenteng Agung","INDOMITRA TEKNOLOGI GROUP",8,40],["FTTH REGULER","Jabodetabek Banten","Maja","MEDIA AKSES INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Maja","PRADIKTA UNGGUL PERKASA",8,4],["FTTH REGULER","Jabodetabek Banten","Maja","ZONA OPTIC NUSANTARA",8,96],["FTTH REGULER","Jabodetabek Banten","Mangga Besar","DELAPAN UNSUR INTI TAMA",8,215],["FTTH REGULER","Jabodetabek Banten","Mangga Besar","MIGE TAMA SINERGI",8,64],["FTTH REGULER","Jabodetabek Banten","Mangga Besar","POLARISNET",8,40],["FTTH REGULER","Jabodetabek Banten","Manggarai","ASSET RECOVERY INDONESIA",8,317],["FTTH REGULER","Jabodetabek Banten","Maseng","HANDAYANI FIBER MEDIA",8,48],["FTTH REGULER","Jabodetabek Banten","Maseng","KHANCA SINERGI SOLUTIONS",8,124],["FTTH REGULER","Jabodetabek Banten","Maseng","TRI SUKHA PRATAMA",8,68],["FTTH REGULER","Jabodetabek Banten","Merak","MEDIA AKSES INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Nambo","TRITUNAS PUTRA NUSANTARA",8,156],["FTTH REGULER","Jabodetabek Banten","Palmerah","DECON SUKSES INDONESIA",8,195],["FTTH REGULER","Jabodetabek Banten","Palmerah","INTEGRA LINTAS TEKNOLOGI",8,40],["FTTH REGULER","Jabodetabek Banten","Palmerah","MELESAT PRIMA NUSANTARA",8,40],["FTTH REGULER","Jabodetabek Banten","Parung Panjang","ARTHA BERKAH EXPONENSIA",8,40],["FTTH REGULER","Jabodetabek Banten","Parung Panjang","GARDA UTAMA PRIMA",8,64],["FTTH REGULER","Jabodetabek Banten","Parung Panjang","METRO DUTA SELARAS",8,193],["FTTH REGULER","Jabodetabek Banten","Parung Panjang","WIYASA PERENCANA INDONESIA",8,192],["FTTH REGULER","Jabodetabek Banten","Parung kuda","HANDAYANI FIBER MEDIA",8,92],["FTTH REGULER","Jabodetabek Banten","Parung kuda","J & JC CONSULTING",8,350],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu","ALIGATOR FIBER OPTIC",8,64],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu","ARJI TECH INDONESIA",8,352],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu","KALINGGA KENCANA",8,40],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu","NETZEN MEDIA AKSES",8,64],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu Baru","ALIGATOR FIBER OPTIC",8,99],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu Baru","ARJI TECH INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Pasar Minggu Baru","NETZEN MEDIA AKSES",8,68],["FTTH REGULER","Jabodetabek Banten","Pasar Senen","DEXA ENERGY",8,40],["FTTH REGULER","Jabodetabek Banten","Pesing","DAPOER POESAT NOESANTARA GROUP",8,64],["FTTH REGULER","Jabodetabek Banten","Pesing","PILAR GAPURA NUSA",8,40],["FTTH REGULER","Jabodetabek Banten","Pondok Cina","INDOMITRA TEKNOLOGI GROUP",8,40],["FTTH REGULER","Jabodetabek Banten","Pondok Cina","TEKNOLOGI ANUGRAH ABADI",8,40],["FTTH REGULER","Jabodetabek Banten","Pondok Ranji","DAPOER POESAT NOESANTARA GROUP",8,640],["FTTH REGULER","Jabodetabek Banten","Pondok Ranji","PILAR GAPURA NUSA",8,40],["FTTH REGULER","Jabodetabek Banten","Poris","DAPOER POESAT NOESANTARA GROUP",8,802],["FTTH REGULER","Jabodetabek Banten","Poris","DIGITAL ANDALAN SOLUSI",8,104],["FTTH REGULER","Jabodetabek Banten","Poris","DWI WAHYUDI",8,40],["FTTH REGULER","Jabodetabek Banten","Rajawali","ASSET RECOVERY INDONESIA",8,104],["FTTH REGULER","Jabodetabek Banten","Rangkasbitung","BINA TARUNA MANDIRI",8,192],["FTTH REGULER","Jabodetabek Banten","Rangkasbitung","NEIMA NETWORKS ACCESS",8,256],["FTTH REGULER","Jabodetabek Banten","Rangkasbitung","WIYASA PERENCANA INDONESIA",8,192],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",8,791],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",9,2],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",10,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",11,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",12,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",13,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",14,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",15,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DAPOER POESAT NOESANTARA GROUP",16,1],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DIGITAL ANDALAN SOLUSI",8,64],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","DWI WAHYUDI",8,40],["FTTH REGULER","Jabodetabek Banten","Rawa Buntu","WAHANA ELEKSIA TECHNOLOGY",8,40],["FTTH REGULER","Jabodetabek Banten","Serang","DWI WAHYUDI",8,40],["FTTH REGULER","Jabodetabek Banten","Serang","SARANA MANDIRI USAHA UNGGUL",8,523],["FTTH REGULER","Jabodetabek Banten","Serang","TRIJAYA DIGITAL TEKNOLOGI",8,40],["FTTH REGULER","Jabodetabek Banten","Serang","WIYASA PERENCANA INDONESIA",8,168],["FTTH REGULER","Jabodetabek Banten","Serpong","DAPOER POESAT NOESANTARA GROUP",8,800],["FTTH REGULER","Jabodetabek Banten","Serpong","DIGITAL ANDALAN SOLUSI",8,64],["FTTH REGULER","Jabodetabek Banten","Serpong","DWI PILAR PRATAMA",8,40],["FTTH REGULER","Jabodetabek Banten","Sudimara","DAPOER POESAT NOESANTARA GROUP",8,864],["FTTH REGULER","Jabodetabek Banten","Sudimara","NETZEN MEDIA AKSES",8,40],["FTTH REGULER","Jabodetabek Banten","Sudimara","SARANA MITRA POWERINDO",8,40],["FTTH REGULER","Jabodetabek Banten","Sudirman","BRAINWORX SOLUSI INTEGRASI",8,40],["FTTH REGULER","Jabodetabek Banten","Sudirman Baru (BNI City)","SURYASANTIKA INFRASTRUKTUR MEDIASELARAS",8,40],["FTTH REGULER","Jabodetabek Banten","Taman Kota","DAPOER POESAT NOESANTARA GROUP",8,445],["FTTH REGULER","Jabodetabek Banten","Taman Kota","DWI WAHYUDI",8,40],["FTTH REGULER","Jabodetabek Banten","Taman Kota","WIRASATYA WALI NASSER",8,40],["FTTH REGULER","Jabodetabek Banten","Tambun","ALAN NUARIE SYAFEI",8,60],["FTTH REGULER","Jabodetabek Banten","Tambun","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jabodetabek Banten","Tambun","NURIZ BERKAH ABADI",8,132],["FTTH REGULER","Jabodetabek Banten","Tanah Abang","ANDOR GLOBAL PERKASA",8,40],["FTTH REGULER","Jabodetabek Banten","Tanah Abang","ASSET RECOVERY INDONESIA",8,64],["FTTH REGULER","Jabodetabek Banten","Tanah Abang","FREDY NUGROHO",8,64],["FTTH REGULER","Jabodetabek Banten","Tangerang","POWER TELCO INDUSTRI",8,196],["FTTH REGULER","Jabodetabek Banten","Tangerang","TELINDO FLASH MEDIATAMA",8,40],["FTTH REGULER","Jabodetabek Banten","Tanjung Barat","ARJI TECH INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Tanjung Barat","CITRA DAYA MAXIMA",8,64],["FTTH REGULER","Jabodetabek Banten","Tebet","FANIZ AMANAT BERSAMA",8,192],["FTTH REGULER","Jabodetabek Banten","Tenjo","DAPOER POESAT NOESANTARA GROUP",8,3],["FTTH REGULER","Jabodetabek Banten","Tenjo","ERA BANGUN INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Tenjo","GLOBAL SARANA MEDIAKOM",8,125],["FTTH REGULER","Jabodetabek Banten","Tenjo","METRO DUTA SELARAS",8,200],["FTTH REGULER","Jabodetabek Banten","Tigaraksa","DAPOER POESAT NOESANTARA GROUP",8,773],["FTTH REGULER","Jabodetabek Banten","Tigaraksa","GERBANG KERUMAH INDONESIA",8,64],["FTTH REGULER","Jabodetabek Banten","Tigaraksa","RAJEG MEDIA TELEKOMUNIKASI",8,40],["FTTH REGULER","Jabodetabek Banten","Tigaraksa","VINMORZA JAYA NUSANTARA",8,392],["FTTH REGULER","Jabodetabek Banten","Tonjong Baru","MEDIA AKSES INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Universitas Pancasila","ARJI TECH INDONESIA",8,40],["FTTH REGULER","Jabodetabek Banten","Universitas Pancasila","DUKODU DIGITAL SOLUTION",8,40],["FTTH REGULER","Jabodetabek Banten","Universitas Pancasila","TRANS HYBRID COMMUNICATION",8,24],["FTTH REGULER","Jabodetabek Banten","Walantaka","NEIMA NETWORKS ACCESS",8,64],["FTTH REGULER","Jabodetabek Banten","Walantaka","PLANET HARAPAN PENUH ENERGY",8,40],["FTTH REGULER","Jawa Barat","Andir","KASIH RAJAWALI SEJAHTERA",8,662],["FTTH REGULER","Jawa Barat","Awipari","CAHAYA DUA PUTRA",8,64],["FTTH REGULER","Jawa Barat","Awipari","EKSPANINDO PRIMA MULTIMEDIA",8,40],["FTTH REGULER","Jawa Barat","Babakan","CHARA ABADI SEJAHTERA",8,428],["FTTH REGULER","Jawa Barat","Bangoduwa","GIANDRA SAKA MEDIA",8,40],["FTTH REGULER","Jawa Barat","Bangoduwa","RADHIKA JAYA PRATAMA",8,40],["FTTH REGULER","Jawa Barat","Banjar","INTERNET ANAK BANGSA",8,120],["FTTH REGULER","Jawa Barat","Banjar","PUTRA TELEKOMUNIKASI INDONESIA",8,136],["FTTH REGULER","Jawa Barat","Bojong","ANUGRAH SOLUSI INFRASTRUKTUR KOMUNIKASI",8,40],["FTTH REGULER","Jawa Barat","Bumiwaluya","WANWAN DIKDIK",8,448],["FTTH REGULER","Jawa Barat","Ciamis","BLUE CONNECT INDONESIA",8,805],["FTTH REGULER","Jawa Barat","Ciamis","RADHIKA JAYA PRATAMA",8,65],["FTTH REGULER","Jawa Barat","Cianjur","ANUGERAH SELARAS INDONESIA",8,2],["FTTH REGULER","Jawa Barat","Cianjur","PUTRA PERSADA TAMA",8,256],["FTTH REGULER","Jawa Barat","Cianjur","SALWA CITRA MANDIRI",8,68],["FTTH REGULER","Jawa Barat","Ciawi","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Ciawi","RAJASTAR MEDIA NUSANTARA",8,65],["FTTH REGULER","Jawa Barat","Cibatu","CLOVER TECH DIGITAL",8,128],["FTTH REGULER","Jawa Barat","Cibatu","SEMBADA MAJU BERSAMA",8,64],["FTTH REGULER","Jawa Barat","Cibeber","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Cibungur","TRIZA PRATAMA",8,114],["FTTH REGULER","Jawa Barat","Cicalengka","NANDA AGUNG GUMILANG",8,60],["FTTH REGULER","Jawa Barat","Cicalengka","TRIJAYA MAJU TOTALINDO",8,192],["FTTH REGULER","Jawa Barat","Ciganea","BANGTELINDO",8,40],["FTTH REGULER","Jawa Barat","Cikadongdong","INTERNET ANAK BANGSA",8,72],["FTTH REGULER","Jawa Barat","Cikampek","LIMA SINERGI UTAMA",8,40],["FTTH REGULER","Jawa Barat","Cikampek","RAHAYU KARYA MESARI",8,397],["FTTH REGULER","Jawa Barat","Cikaum","NIXBIAN SOLUSI",8,64],["FTTH REGULER","Jawa Barat","Cilaku","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Cilame","BAHANA INFRA KOMUNIKA",8,60],["FTTH REGULER","Jawa Barat","Cilame","PUTRA TELEKOMUNIKASI INDONESIA",8,4],["FTTH REGULER","Jawa Barat","Ciledug","JAYAHANA MUNAURA MEKANIKA SELARAS",8,448],["FTTH REGULER","Jawa Barat","Cilegeh","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Cimahi","ANANTA TIGA BINTANG",8,40],["FTTH REGULER","Jawa Barat","Cimahi","KASIH RAJAWALI SEJAHTERA",8,1075],["FTTH REGULER","Jawa Barat","Cimahi","NUGROHO INFRASTRUKTUR TECHNOLOGY",8,64],["FTTH REGULER","Jawa Barat","Cipatat","TERUS RAIH PRESTASI",8,1],["FTTH REGULER","Jawa Barat","Cipatat","TRIZA PRATAMA",8,301],["FTTH REGULER","Jawa Barat","Cipatat","TRIZA PRATAMA",16,4],["FTTH REGULER","Jawa Barat","Cipeundeuy","SYAMINDO TEKNIK MANDIRI",8,64],["FTTH REGULER","Jawa Barat","Cipeundeuy","WANWAN DIKDIK",8,256],["FTTH REGULER","Jawa Barat","Cipeuyeum","TRIZA PRATAMA",8,284],["FTTH REGULER","Jawa Barat","Cipunegara","TRIPOLA PANATA",8,40],["FTTH REGULER","Jawa Barat","Cirebon","CIPTA OPTIMA SOLUSI",8,144],["FTTH REGULER","Jawa Barat","Cirebon","ERZAR INTI SOLUSI",8,59],["FTTH REGULER","Jawa Barat","Cirebon","QUANTUM NUSATAMA",8,40],["FTTH REGULER","Jawa Barat","Cirebon Prujakan","CIPTA OPTIMA SOLUSI",8,395],["FTTH REGULER","Jawa Barat","Cirebon Prujakan","FORTY INTEGRASI OPTIMAL",8,40],["FTTH REGULER","Jawa Barat","Cirebon Prujakan","QUANTUM NUSATAMA",8,85],["FTTH REGULER","Jawa Barat","Cireungas","QUEENSHA MIKAILA RAHAYU",8,64],["FTTH REGULER","Jawa Barat","Cisomang","TIGA NOVA SENTOSA",8,128],["FTTH REGULER","Jawa Barat","Gadobangkong","JAYAHANA MUNAURA MEKANIKA SELARAS",8,128],["FTTH REGULER","Jawa Barat","Gandasoli","TRIZA PRATAMA",8,446],["FTTH REGULER","Jawa Barat","Garut","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Barat","Garut","GENPOWER TOTAL ENERGI",8,40],["FTTH REGULER","Jawa Barat","Garut","KHATULISTIWA JARINGAN NUSATECH",8,367],["FTTH REGULER","Jawa Barat","Garut","NUSA BAKTI KOMUNIKA",8,305],["FTTH REGULER","Jawa Barat","Garut","RAHAYU KARYA MESARI",8,426],["FTTH REGULER","Jawa Barat","Gedebage","KALYANA MITRA LESTARI",8,40],["FTTH REGULER","Jawa Barat","Gedebage","MAJU JAYA TEKNOLOGI",8,108],["FTTH REGULER","Jawa Barat","Haurgeulis","EKSPANINDO PRIMA MULTIMEDIA",8,123],["FTTH REGULER","Jawa Barat","Haurpugur","ULTRA MANDIRI TEKNOLOGI",8,192],["FTTH REGULER","Jawa Barat","Indihiang","CAHAYA DUA PUTRA",6,1],["FTTH REGULER","Jawa Barat","Indihiang","CAHAYA DUA PUTRA",8,384],["FTTH REGULER","Jawa Barat","Indihiang","RAIHAN TEKNOLOGI PRATAMA",8,200],["FTTH REGULER","Jawa Barat","Kadokangabus","RADHIKA JAYA PRATAMA",8,40],["FTTH REGULER","Jawa Barat","Karangpucung","JALATIKA AGUNG PERKASA",8,64],["FTTH REGULER","Jawa Barat","Karangsari Jawa Barat","SEJAHTERA TRI MULYA INDONESIA",8,40],["FTTH REGULER","Jawa Barat","Karangsuwung","DEXRADO SINERGI SELARAS",8,128],["FTTH REGULER","Jawa Barat","Karangsuwung","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Barat","Kertasemaya","SRINARENDRA SEJAHTERA ABADI",8,56],["FTTH REGULER","Jawa Barat","Kertasemaya","YOGA INDRIAS MAYA",8,64],["FTTH REGULER","Jawa Barat","Lampegan","TRIZA PRATAMA",8,127],["FTTH REGULER","Jawa Barat","Langen","BERKAH JAGO PERKASA",8,72],["FTTH REGULER","Jawa Barat","Langen","TUMINO",8,64],["FTTH REGULER","Jawa Barat","Lebakjero","PUTRA TELEKOMUNIKASI INDONESIA",8,64],["FTTH REGULER","Jawa Barat","Leles","CLOVER TECH DIGITAL",8,64],["FTTH REGULER","Jawa Barat","Leles","PUTRA TELEKOMUNIKASI INDONESIA",8,191],["FTTH REGULER","Jawa Barat","Leles","SEMBADA MAJU BERSAMA",8,40],["FTTH REGULER","Jawa Barat","Leuwigoong","CLOVER TECH DIGITAL",8,128],["FTTH REGULER","Jawa Barat","Leuwigoong","SEMBADA MAJU BERSAMA",8,40],["FTTH REGULER","Jawa Barat","Leuwigoong","SUMBER HARUMAN NUSANTARA",8,64],["FTTH REGULER","Jawa Barat","Losari","CHARA ABADI SEJAHTERA",8,84],["FTTH REGULER","Jawa Barat","Losari","DELAPAN UNSUR INTI TAMA",8,40],["FTTH REGULER","Jawa Barat","Luwung","KASIH RAJAWALI SEJAHTERA",8,717],["FTTH REGULER","Jawa Barat","Maleber","TRIZA PRATAMA",8,168],["FTTH REGULER","Jawa Barat","Manonjaya","CAHAYA DUA PUTRA",8,122],["FTTH REGULER","Jawa Barat","Manonjaya","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Manonjaya","RADHIKA JAYA PRATAMA",8,186],["FTTH REGULER","Jawa Barat","Nagreg","TRIZA PRATAMA",8,374],["FTTH REGULER","Jawa Barat","Pabuaran","ANDOR GLOBAL PERKASA",8,64],["FTTH REGULER","Jawa Barat","Pabuaran","BINTANG TRANS KHATULISTIWA",8,40],["FTTH REGULER","Jawa Barat","Padalarang","JAYAHANA MUNAURA MEKANIKA SELARAS",8,384],["FTTH REGULER","Jawa Barat","Padalarang","KASIH RAJAWALI SEJAHTERA",8,791],["FTTH REGULER","Jawa Barat","Padalarang","NUGROHO INFRASTRUKTUR TECHNOLOGY",8,128],["FTTH REGULER","Jawa Barat","Pasirbungur","NIXBIAN SOLUSI",8,64],["FTTH REGULER","Jawa Barat","Pasirjengkol","PUTRA TELEKOMUNIKASI INDONESIA",8,125],["FTTH REGULER","Jawa Barat","Pegaden Baru","TRIPOLA PANATA",8,64],["FTTH REGULER","Jawa Barat","Plered","ANUGRAH SOLUSI INFRASTRUKTUR KOMUNIKASI",8,73],["FTTH REGULER","Jawa Barat","Plered","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Barat","Plered","RAHAYU KARYA MESARI",8,212],["FTTH REGULER","Jawa Barat","Plered","RAHAYU KARYA MESARI",16,1],["FTTH REGULER","Jawa Barat","Pringkasap","ANDOR GLOBAL PERKASA",8,256],["FTTH REGULER","Jawa Barat","Purwakarta","ANUGRAH SOLUSI INFRASTRUKTUR KOMUNIKASI",8,136],["FTTH REGULER","Jawa Barat","Purwakarta","DEXRADO SINERGI SELARAS",8,106],["FTTH REGULER","Jawa Barat","Purwakarta","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Barat","Purwakarta","RAHAYU KARYA MESARI",8,220],["FTTH REGULER","Jawa Barat","Purwakarta","STAR HOME INDONESIA",8,64],["FTTH REGULER","Jawa Barat","Rajamandala","BAHANA INFRA KOMUNIKA",8,64],["FTTH REGULER","Jawa Barat","Rajamandala","TRIZA PRATAMA",8,80],["FTTH REGULER","Jawa Barat","Rajapolah","RAJASTAR MEDIA NUSANTARA",8,64],["FTTH REGULER","Jawa Barat","Rajapolah","SEMPUR JAYA",8,64],["FTTH REGULER","Jawa Barat","Rancaekek","HASTALOKA MITRA UTAMA",8,64],["FTTH REGULER","Jawa Barat","Rancaekek","MIGE TAMA SINERGI",8,64],["FTTH REGULER","Jawa Barat","Rendeh","BAHANA INFRA KOMUNIKA",8,64],["FTTH REGULER","Jawa Barat","Rendeh","PUTRA TELEKOMUNIKASI INDONESIA",8,192],["FTTH REGULER","Jawa Barat","Sadang","BINTANG TRANS KHATULISTIWA",8,40],["FTTH REGULER","Jawa Barat","Sadang","KASIH RAJAWALI SEJAHTERA",8,96],["FTTH REGULER","Jawa Barat","Sasaksaat","INTERNET ANAK BANGSA",8,101],["FTTH REGULER","Jawa Barat","Selajambe","TRIZA PRATAMA",8,190],["FTTH REGULER","Jawa Barat","Sindanglaut","MITRA DIGITAL GLOBALINDO",8,40],["FTTH REGULER","Jawa Barat","Sindanglaut","NUSA BAKTI KOMUNIKA",8,28],["FTTH REGULER","Jawa Barat","Sukatani","ANUGRAH SOLUSI INFRASTRUKTUR KOMUNIKASI",8,64],["FTTH REGULER","Jawa Barat","Sukatani","BAHANA INFRA KOMUNIKA",8,64],["FTTH REGULER","Jawa Barat","Sukatani","PUTRA TELEKOMUNIKASI INDONESIA",8,64],["FTTH REGULER","Jawa Barat","Tagogapu","JAYAHANA MUNAURA MEKANIKA SELARAS",8,192],["FTTH REGULER","Jawa Barat","Tanjungrasa","NIXBIAN SOLUSI",8,64],["FTTH REGULER","Jawa Barat","Tanjungrasa","RAHAYU KARYA MESARI",8,128],["FTTH REGULER","Jawa Barat","Tanjungrasa","SARANA MITRA POWERINDO",8,40],["FTTH REGULER","Jawa Barat","Tanjungrasa","STAR HOME INDONESIA",8,244],["FTTH REGULER","Jawa Barat","Tasikmalaya","DUTA ANUGRAH DAMAI SEJAHTERA",8,1318],["FTTH REGULER","Jawa Barat","Tasikmalaya","RADHIKA JAYA PRATAMA",8,169],["FTTH REGULER","Jawa Barat","Tasikmalaya","RAJASTAR MEDIA NUSANTARA",8,40],["FTTH REGULER","Jawa Barat","Telagasari","EKSPANINDO PRIMA MULTIMEDIA",8,64],["FTTH REGULER","Jawa Barat","Terisi","EKSPANINDO PRIMA MULTIMEDIA",8,51],["FTTH REGULER","Jawa Barat","Wanaraja","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Barat","Wanaraja","PERSONEL ALIH DAYA",8,97],["FTTH REGULER","Jawa Barat","Wanaraja","PUNCAK TIMUR PARAHYANGAN",8,40],["FTTH REGULER","Jawa Barat","Wanaraja","WANWAN DIKDIK",8,376],["FTTH REGULER","Jawa Barat","Waruduwur","CHARA ABADI SEJAHTERA",8,136],["FTTH REGULER","Jawa Barat","Waruduwur","MAGNA CAHAYA UTAMA",8,249],["FTTH REGULER","Jawa Barat","Waruduwur","NUSA BAKTI KOMUNIKA",8,101],["FTTH REGULER","Jawa Barat","Warung bandrek","CLOVER TECH DIGITAL",8,64],["FTTH REGULER","Jawa Barat","Warung bandrek","SEJAHTERA TRI MULYA INDONESIA",8,40],["FTTH REGULER","Jawa Tengah","Alastua","DESNARUM JAYA AKASHA",8,736],["FTTH REGULER","Jawa Tengah","Alastua","ERZAR INTI SOLUSI",8,129],["FTTH REGULER","Jawa Tengah","Alastua","PERSONEL ALIH DAYA",8,129],["FTTH REGULER","Jawa Tengah","Alastua","PILAR GAPURA NUSA",8,40],["FTTH REGULER","Jawa Tengah","Alastua","WIJAYA PRIMA TELEINDO",8,163],["FTTH REGULER","Jawa Tengah","Balapulang","IDKO ECO JAYA ENERGI",8,252],["FTTH REGULER","Jawa Tengah","Balapulang","MIFTAHUDDIN",8,328],["FTTH REGULER","Jawa Tengah","Balapulang","SAMARRA ALAMSAH BERKAH",8,64],["FTTH REGULER","Jawa Tengah","Banjaran","ANDOR GLOBAL PERKASA",8,194],["FTTH REGULER","Jawa Tengah","Banjaran","BERKAH SERIKAT MANDIRI",8,287],["FTTH REGULER","Jawa Tengah","Banjaran","HARSA SANJAYA SOLUTION",8,64],["FTTH REGULER","Jawa Tengah","Banjaran","WIYASA PERENCANA INDONESIA",8,64],["FTTH REGULER","Jawa Tengah","Batang","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Batang","INTERNET ANAK BANGSA",8,64],["FTTH REGULER","Jawa Tengah","Batang","MIGE TAMA SINERGI",8,64],["FTTH REGULER","Jawa Tengah","Batang","SATYA JALA MANDIRI",8,121],["FTTH REGULER","Jawa Tengah","Batang","TANGGUH KAPITAL INFRASARANA",8,64],["FTTH REGULER","Jawa Tengah","Brambanan","ABIMANYU PUTRA PRATAMA",8,40],["FTTH REGULER","Jawa Tengah","Brambanan","AKSES ARTHA MEDIA",8,75],["FTTH REGULER","Jawa Tengah","Brambanan","ARIOSY SADIA RESWARA",8,523],["FTTH REGULER","Jawa Tengah","Brebes","INTERNET ANAK BANGSA",8,80],["FTTH REGULER","Jawa Tengah","Brebes","PUTRA PERSADA TAMA",8,204],["FTTH REGULER","Jawa Tengah","Brebes","TRANS ARTHA TEKNOLOGI NUSANTARA",8,64],["FTTH REGULER","Jawa Tengah","Brumbung","DESNARUM JAYA AKASHA",8,505],["FTTH REGULER","Jawa Tengah","Brumbung","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Brumbung","PILAR GAPURA NUSA",8,209],["FTTH REGULER","Jawa Tengah","Bulakamba","PERSONEL ALIH DAYA",8,476],["FTTH REGULER","Jawa Tengah","Bumiayu","DAPOER POESAT NOESANTARA GROUP",8,840],["FTTH REGULER","Jawa Tengah","Bumiayu","DIMENSI MULYA TALENTA",8,40],["FTTH REGULER","Jawa Tengah","Bumiayu","NUSA ADHANU SABIATAMA",8,24],["FTTH REGULER","Jawa Tengah","Butuh","IDKO ECO JAYA ENERGI",8,192],["FTTH REGULER","Jawa Tengah","Ceper","ABIMANYU PUTRA PRATAMA",8,64],["FTTH REGULER","Jawa Tengah","Ceper","ARIOSY SADIA RESWARA",8,336],["FTTH REGULER","Jawa Tengah","Ceper","ARIOSY SADIA RESWARA",9,1],["FTTH REGULER","Jawa Tengah","Ceper","METRO AKSES PRATAMA",8,64],["FTTH REGULER","Jawa Tengah","Ceper","SAMUDERA EMAS NUSANTARA",8,156],["FTTH REGULER","Jawa Tengah","Cepu","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Cepu","KHATULISTIWA JARINGAN NUSATECH",8,64],["FTTH REGULER","Jawa Tengah","Cepu","MILIARTO PRADANA PROYEK",8,65],["FTTH REGULER","Jawa Tengah","Cilacap","FAJAR MITRA KRIDA ABADI",8,151],["FTTH REGULER","Jawa Tengah","Cilacap","INTERNET ANAK BANGSA",8,70],["FTTH REGULER","Jawa Tengah","Cilacap","KHATULISTIWA JARINGAN NUSATECH",8,160],["FTTH REGULER","Jawa Tengah","Cilacap","STEP POINT INDONESIA",8,52],["FTTH REGULER","Jawa Tengah","Cipari","BERKAH JAGO PERKASA",8,40],["FTTH REGULER","Jawa Tengah","Comal","MIGE TAMA SINERGI",8,397],["FTTH REGULER","Jawa Tengah","Delanggu","APRILLIA PROFESIONAL TEKNOLOGI",8,40],["FTTH REGULER","Jawa Tengah","Delanggu","FAJAR MITRA KRIDA ABADI",8,276],["FTTH REGULER","Jawa Tengah","Delanggu","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Doplang","DAKSA KARYA TEKNOLOGI",8,64],["FTTH REGULER","Jawa Tengah","Gambringan","ARIOSY SADIA RESWARA",8,1985],["FTTH REGULER","Jawa Tengah","Gandrungmangun","JALATIKA AGUNG PERKASA",8,64],["FTTH REGULER","Jawa Tengah","Gawok","BLACKFAOS DATA NUSANTARA",8,40],["FTTH REGULER","Jawa Tengah","Gawok","KAWAN INFORMATIKA TEKNOLOGI ABADI",8,64],["FTTH REGULER","Jawa Tengah","Gombong","KHATULISTIWA JARINGAN NUSATECH",8,295],["FTTH REGULER","Jawa Tengah","Gombong","MATERIAL SUPPLY INDONESIA",8,443],["FTTH REGULER","Jawa Tengah","Gombong","TIRTAMAS BERKAH MULIA",8,64],["FTTH REGULER","Jawa Tengah","Goprak","ARIOSY SADIA RESWARA",8,42],["FTTH REGULER","Jawa Tengah","Goprak","ARIOSY SADIA RESWARA",16,33],["FTTH REGULER","Jawa Tengah","Gubug","ARIOSY SADIA RESWARA",8,857],["FTTH REGULER","Jawa Tengah","Gumilir","TUJUH SINAR ABADI",8,40],["FTTH REGULER","Jawa Tengah","Gundih","ARIOSY SADIA RESWARA",8,268],["FTTH REGULER","Jawa Tengah","Ijo","ANUGERAH SELARAS INDONESIA",8,41],["FTTH REGULER","Jawa Tengah","Ijo","BERATHI",8,700],["FTTH REGULER","Jawa Tengah","Jambon","ARIOSY SADIA RESWARA",8,1480],["FTTH REGULER","Jawa Tengah","Jenar","DAPOER POESAT NOESANTARA GROUP",8,128],["FTTH REGULER","Jawa Tengah","Jenar","JAMBON ELEKTRIK UTAMA",8,92],["FTTH REGULER","Jawa Tengah","Jerakah","DUTA ANUGRAH DAMAI SEJAHTERA",8,325],["FTTH REGULER","Jawa Tengah","Jerakah","RENALDI",8,128],["FTTH REGULER","Jawa Tengah","Jeruklegi","QUEENSHA MIKAILA RAHAYU",8,64],["FTTH REGULER","Jawa Tengah","Kadipiro","TIRTAMAS BERKAH MULIA",8,62],["FTTH REGULER","Jawa Tengah","Kalibodri","DESNARUM JAYA AKASHA",8,580],["FTTH REGULER","Jawa Tengah","Kalioso","DUTA ANUGRAH DAMAI SEJAHTERA",8,78],["FTTH REGULER","Jawa Tengah","Kaliwungu","CYNET INDONESIA NETWORK",8,40],["FTTH REGULER","Jawa Tengah","Kaliwungu","DESNARUM JAYA AKASHA",8,312],["FTTH REGULER","Jawa Tengah","Kaliwungu","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Kapuan","BERKAH INTER GENERATION",8,4],["FTTH REGULER","Jawa Tengah","Kapuan","PRIMA AKSES SOLUSI GLOBAL",8,64],["FTTH REGULER","Jawa Tengah","Karang gandul","AZZAHRA RAJAWALI MAKMUR",8,411],["FTTH REGULER","Jawa Tengah","Karang gandul","SOLIHUDIN",8,51],["FTTH REGULER","Jawa Tengah","Karanganyar","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Karanganyar","LINGKUP TOTAL TECHNOLOGY",8,396],["FTTH REGULER","Jawa Tengah","Karangjati","ARIOSY SADIA RESWARA",8,683],["FTTH REGULER","Jawa Tengah","Karangkandri","LINGKUP TOTAL TECHNOLOGY",8,64],["FTTH REGULER","Jawa Tengah","Karangsari Jawa Tengah","TUJUH SINAR ABADI",8,138],["FTTH REGULER","Jawa Tengah","Karangsono","ARIOSY SADIA RESWARA",8,407],["FTTH REGULER","Jawa Tengah","Karangsono","PRIMA AKSES SOLUSI GLOBAL",8,40],["FTTH REGULER","Jawa Tengah","Kasugihan","LINGKUP TOTAL TECHNOLOGY",8,620],["FTTH REGULER","Jawa Tengah","Kawunganten","QUEENSHA MIKAILA RAHAYU",8,104],["FTTH REGULER","Jawa Tengah","Kebasen","BERATHI",8,700],["FTTH REGULER","Jawa Tengah","Kebasen","INTERNET ANAK BANGSA",8,64],["FTTH REGULER","Jawa Tengah","Kebonromo","TRI AKSES NUSANTARA",8,64],["FTTH REGULER","Jawa Tengah","Kebumen","ANUGERAH SELARAS INDONESIA",8,80],["FTTH REGULER","Jawa Tengah","Kebumen","KHATULISTIWA JARINGAN NUSATECH",8,616],["FTTH REGULER","Jawa Tengah","Kebumen","SEMESTA ENERGI SERVICES",8,40],["FTTH REGULER","Jawa Tengah","Kedundang","JAMBON ELEKTRIK UTAMA",8,132],["FTTH REGULER","Jawa Tengah","Kedungbanteng","TRI AKSES NUSANTARA",8,64],["FTTH REGULER","Jawa Tengah","Kedungjati","ARIOSY SADIA RESWARA",8,272],["FTTH REGULER","Jawa Tengah","Kemiri","MATERIAL SUPPLY INDONESIA",8,67],["FTTH REGULER","Jawa Tengah","Kemranjen","KREASI INOVASI ONLINE SEJAHTERA NETWORK",8,256],["FTTH REGULER","Jawa Tengah","Kemranjen","TANGGAP WASKITA",8,64],["FTTH REGULER","Jawa Tengah","Kepuh","DAPOER POESAT NOESANTARA GROUP",8,88],["FTTH REGULER","Jawa Tengah","Kepuh","WARNINDO DIGITAL INDONESIA",8,40],["FTTH REGULER","Jawa Tengah","Ketanggungan","KUSNADI",8,64],["FTTH REGULER","Jawa Tengah","Ketanggungan","SRINARENDRA SEJAHTERA ABADI",8,437],["FTTH REGULER","Jawa Tengah","Klaten","ABIMANYU PUTRA PRATAMA",8,40],["FTTH REGULER","Jawa Tengah","Klaten","ARIOSY SADIA RESWARA",8,57],["FTTH REGULER","Jawa Tengah","Klaten","TELEMITRA GLOBALINDO",8,40],["FTTH REGULER","Jawa Tengah","Kradenan","DAKSA KARYA TEKNOLOGI",8,196],["FTTH REGULER","Jawa Tengah","Kradenan","DESNARUM JAYA AKASHA",8,823],["FTTH REGULER","Jawa Tengah","Krengseng","DESNARUM JAYA AKASHA",8,352],["FTTH REGULER","Jawa Tengah","Krengseng","ERZAR INTI SOLUSI",8,59],["FTTH REGULER","Jawa Tengah","Kretek","DAPOER POESAT NOESANTARA GROUP",8,968],["FTTH REGULER","Jawa Tengah","Kroya","FAJAR MITRA KRIDA ABADI",8,221],["FTTH REGULER","Jawa Tengah","Kroya","KHATULISTIWA JARINGAN NUSATECH",8,496],["FTTH REGULER","Jawa Tengah","Kroya","MULTIPOLAR TECHNOLOGY",8,1364],["FTTH REGULER","Jawa Tengah","Kuripan","BERKAH SERIKAT MANDIRI",8,52],["FTTH REGULER","Jawa Tengah","Kuripan","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Kutoarjo","DAPOER POESAT NOESANTARA GROUP",8,1276],["FTTH REGULER","Jawa Tengah","Kutoarjo","JAMBON ELEKTRIK UTAMA",8,96],["FTTH REGULER","Jawa Tengah","Kutowinangun","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Kutowinangun","MATERIAL SUPPLY INDONESIA",8,456],["FTTH REGULER","Jawa Tengah","Kutowinangun","TIRTAMAS BERKAH MULIA",8,64],["FTTH REGULER","Jawa Tengah","Larangan Brebes","PERSONEL ALIH DAYA",8,879],["FTTH REGULER","Jawa Tengah","Lebeng","QUEENSHA MIKAILA RAHAYU",8,103],["FTTH REGULER","Jawa Tengah","Legok","TUJUH SINAR ABADI",8,70],["FTTH REGULER","Jawa Tengah","Lempuyangan","AKSES ARTHA MEDIA",8,40],["FTTH REGULER","Jawa Tengah","Lempuyangan","CAKRAWALA SOLUSI NUSANTARA",8,40],["FTTH REGULER","Jawa Tengah","Lempuyangan","SEMESTA ENERGI SERVICES",8,40],["FTTH REGULER","Jawa Tengah","Linggapura","DAPOER POESAT NOESANTARA GROUP",8,64],["FTTH REGULER","Jawa Tengah","Linggapura","NUSA ADHANU SABIATAMA",8,64],["FTTH REGULER","Jawa Tengah","Maguwo","ABIMANYU PUTRA PRATAMA",8,64],["FTTH REGULER","Jawa Tengah","Maguwo","AKSES ARTHA MEDIA",8,40],["FTTH REGULER","Jawa Tengah","Maguwo","METRO DUTA SELARAS",8,1384],["FTTH REGULER","Jawa Tengah","Maguwo","SEMESTA ENERGI SERVICES",8,40],["FTTH REGULER","Jawa Tengah","Mangkang","RENALDI",8,128],["FTTH REGULER","Jawa Tengah","Maos","ARIOSY SADIA RESWARA",8,260],["FTTH REGULER","Jawa Tengah","Maos","NUR DAWAN",8,72],["FTTH REGULER","Jawa Tengah","Margasari","NATORI DEMAH AMANAH",8,64],["FTTH REGULER","Jawa Tengah","Masaran","TRI AKSES NUSANTARA",8,64],["FTTH REGULER","Jawa Tengah","Meluwung","PUTRA TELEKOMUNIKASI INDONESIA",8,192],["FTTH REGULER","Jawa Tengah","Ngrombo","ARIOSY SADIA RESWARA",8,1658],["FTTH REGULER","Jawa Tengah","Notog","BERATHI",8,672],["FTTH REGULER","Jawa Tengah","Notog","BERKAH TEKNIK MITRA ABADI",8,64],["FTTH REGULER","Jawa Tengah","Padas","ARIOSY SADIA RESWARA",8,40],["FTTH REGULER","Jawa Tengah","Palur","SEMESTA PUSAT KREASI",8,63],["FTTH REGULER","Jawa Tengah","Panunggalan","BERKAH INTER GENERATION",8,8],["FTTH REGULER","Jawa Tengah","Panunggalan","MILIARTO PRADANA PROYEK",8,68],["FTTH REGULER","Jawa Tengah","Pasarnguter","SEMESTA PUSAT KREASI",8,64],["FTTH REGULER","Jawa Tengah","Patuguran","BERKAH TEKNIK MITRA ABADI",8,72],["FTTH REGULER","Jawa Tengah","Patukan","GARUDA PRIMA SEKAWAN",8,40],["FTTH REGULER","Jawa Tengah","Patukan","JAMBON ELEKTRIK UTAMA",8,96],["FTTH REGULER","Jawa Tengah","Pekalongan","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Pekalongan","CAKRAWALA SOLUSI NUSANTARA",8,104],["FTTH REGULER","Jawa Tengah","Pekalongan","IDKO ECO JAYA ENERGI",8,65],["FTTH REGULER","Jawa Tengah","Pekalongan","INDOTECH DIGITAMA SUPERLINK",8,40],["FTTH REGULER","Jawa Tengah","Pekalongan","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Pekalongan","TELINCO NETWORKS INDONESIA",8,140],["FTTH REGULER","Jawa Tengah","Pemalang","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Pemalang","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Tengah","Pemalang","MIGE TAMA SINERGI",8,64],["FTTH REGULER","Jawa Tengah","Petarukan","CITRA DAYA MAXIMA",8,64],["FTTH REGULER","Jawa Tengah","Petarukan","FLASHNET SINERGI BERJAYA",8,152],["FTTH REGULER","Jawa Tengah","Plabuan","FLASHNET SINERGI BERJAYA",8,40],["FTTH REGULER","Jawa Tengah","Prembun","ANUGERAH SELARAS INDONESIA",8,328],["FTTH REGULER","Jawa Tengah","Prupuk","SRINARENDRA SEJAHTERA ABADI",8,195],["FTTH REGULER","Jawa Tengah","Purwokerto","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Purwokerto","AZZAHRA RAJAWALI MAKMUR",8,278],["FTTH REGULER","Jawa Tengah","Purwokerto","DAPOER POESAT NOESANTARA GROUP",7,1],["FTTH REGULER","Jawa Tengah","Purwokerto","DAPOER POESAT NOESANTARA GROUP",8,1514],["FTTH REGULER","Jawa Tengah","Purwokerto","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Purwokerto","KHATULISTIWA JARINGAN NUSATECH",8,628],["FTTH REGULER","Jawa Tengah","Purwokerto","QUANTUM NUSATAMA",8,212],["FTTH REGULER","Jawa Tengah","Purwokerto","TRANS ARTHA TEKNOLOGI NUSANTARA",8,144],["FTTH REGULER","Jawa Tengah","Purworejo","DAPOER POESAT NOESANTARA GROUP",8,189],["FTTH REGULER","Jawa Tengah","Purwosari","ANUGRAH BORNEO NUSANTARA",8,64],["FTTH REGULER","Jawa Tengah","Purwosari","TIRTAMAS BERKAH MULIA",8,40],["FTTH REGULER","Jawa Tengah","Randegan","ARIOSY SADIA RESWARA",8,76],["FTTH REGULER","Jawa Tengah","Randegan","BERKAH JAGO PERKASA",8,40],["FTTH REGULER","Jawa Tengah","Randegan","BIMASAKTI SELULAR INDONESIA",8,65],["FTTH REGULER","Jawa Tengah","Randublatung","DAKSA KARYA TEKNOLOGI",8,72],["FTTH REGULER","Jawa Tengah","Randublatung","DESNARUM JAYA AKASHA",8,128],["FTTH REGULER","Jawa Tengah","Randublatung","KEDIREN NET MEDIA BLORA",8,813],["FTTH REGULER","Jawa Tengah","Rewulu","JAMBON ELEKTRIK UTAMA",8,100],["FTTH REGULER","Jawa Tengah","Salem","TIRTAMAS BERKAH MULIA",8,72],["FTTH REGULER","Jawa Tengah","Sedadi","ARIOSY SADIA RESWARA",8,554],["FTTH REGULER","Jawa Tengah","Semarang Poncol","DUTA ANUGRAH DAMAI SEJAHTERA",8,672],["FTTH REGULER","Jawa Tengah","Semarang Poncol","ERZAR INTI SOLUSI",8,62],["FTTH REGULER","Jawa Tengah","Semarang Poncol","MATERIAL SUPPLY INDONESIA",8,204],["FTTH REGULER","Jawa Tengah","Semarang Poncol","PERSONEL ALIH DAYA",8,139],["FTTH REGULER","Jawa Tengah","Semarang Tawang","DESNARUM JAYA AKASHA",8,324],["FTTH REGULER","Jawa Tengah","Semarang Tawang","KHATULISTIWA JARINGAN NUSATECH",8,64],["FTTH REGULER","Jawa Tengah","Semarang Tawang","MATERIAL SUPPLY INDONESIA",8,280],["FTTH REGULER","Jawa Tengah","Semarang Tawang","TIRTAMAS BERKAH MULIA",8,40],["FTTH REGULER","Jawa Tengah","Sentolo","JAMBON ELEKTRIK UTAMA",8,92],["FTTH REGULER","Jawa Tengah","Sidareja","FAJAR MITRA KRIDA ABADI",8,546],["FTTH REGULER","Jawa Tengah","Sikampuh","JALATIKA AGUNG PERKASA",8,64],["FTTH REGULER","Jawa Tengah","Slawi","IDKO ECO JAYA ENERGI",8,360],["FTTH REGULER","Jawa Tengah","Slawi","WIYASA PERENCANA INDONESIA",8,64],["FTTH REGULER","Jawa Tengah","Soka","ANUGERAH SELARAS INDONESIA",8,88],["FTTH REGULER","Jawa Tengah","Soka","LINGKUP TOTAL TECHNOLOGY",8,64],["FTTH REGULER","Jawa Tengah","Solo Balapan","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Solo Balapan","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Solo Jebres","KAWAN INFORMATIKA TEKNOLOGI ABADI",8,64],["FTTH REGULER","Jawa Tengah","Solo Jebres","SALWA CITRA MANDIRI",8,1102],["FTTH REGULER","Jawa Tengah","Solo Kota","KAWAN INFORMATIKA TEKNOLOGI ABADI",8,64],["FTTH REGULER","Jawa Tengah","Solo Kota","SALWA CITRA MANDIRI",8,594],["FTTH REGULER","Jawa Tengah","Songgom","JAYAHANA MUNAURA MEKANIKA SELARAS",8,320],["FTTH REGULER","Jawa Tengah","Songgom","RAHAYU KARYA MESARI",8,112],["FTTH REGULER","Jawa Tengah","Songgom","RIZQI KARYA BERSAMA",8,292],["FTTH REGULER","Jawa Tengah","Sragen","ERZAR INTI SOLUSI",8,40],["FTTH REGULER","Jawa Tengah","Sragen","TRI AKSES NUSANTARA",8,104],["FTTH REGULER","Jawa Tengah","Sragi","IDKO ECO JAYA ENERGI",8,400],["FTTH REGULER","Jawa Tengah","Srowot","ABIMANYU PUTRA PRATAMA",8,96],["FTTH REGULER","Jawa Tengah","Srowot","ARIOSY SADIA RESWARA",8,505],["FTTH REGULER","Jawa Tengah","Srowot","METRO AKSES PRATAMA",8,64],["FTTH REGULER","Jawa Tengah","Sruweng","TIRTAMAS BERKAH MULIA",8,68],["FTTH REGULER","Jawa Tengah","Sukoharjo","ARIOSY SADIA RESWARA",8,131],["FTTH REGULER","Jawa Tengah","Sukoharjo","TIRTAMAS BERKAH MULIA",8,72],["FTTH REGULER","Jawa Tengah","Sulur","DAKSA KARYA TEKNOLOGI",8,68],["FTTH REGULER","Jawa Tengah","Sulur","DESNARUM JAYA AKASHA",8,220],["FTTH REGULER","Jawa Tengah","Sumber lawang","ARIOSY SADIA RESWARA",8,577],["FTTH REGULER","Jawa Tengah","Sumber lawang","BATAVIA INDO GLOBAL MANDIRI",8,64],["FTTH REGULER","Jawa Tengah","Sumpiuh","BERATHI",8,738],["FTTH REGULER","Jawa Tengah","Sumpiuh","INTERNET ANAK BANGSA",8,64],["FTTH REGULER","Jawa Tengah","Suradadi","MAGNA CAHAYA UTAMA",8,368],["FTTH REGULER","Jawa Tengah","Tambak","BERATHI",8,696],["FTTH REGULER","Jawa Tengah","Tambak","INTERNET ANAK BANGSA",8,64],["FTTH REGULER","Jawa Tengah","Tambak","KREASI INOVASI ONLINE SEJAHTERA NETWORK",8,64],["FTTH REGULER","Jawa Tengah","Tanggung","ARIOSY SADIA RESWARA",8,486],["FTTH REGULER","Jawa Tengah","Tanjung","BIMASAKTI SELULAR INDONESIA",8,40],["FTTH REGULER","Jawa Tengah","Tanjung","RAHAYU KARYA MESARI",8,616],["FTTH REGULER","Jawa Tengah","Tegal","AFHAM SOLUSI KOMUNIKASI",8,40],["FTTH REGULER","Jawa Tengah","Tegal","ARUNIKA JAYA PERSADA",8,40],["FTTH REGULER","Jawa Tengah","Tegal","INTERNET ANAK BANGSA",8,71],["FTTH REGULER","Jawa Tengah","Tegal","KHATULISTIWA JARINGAN NUSATECH",8,578],["FTTH REGULER","Jawa Tengah","Tegal","WIYASA PERENCANA INDONESIA",8,198],["FTTH REGULER","Jawa Tengah","Tegowanu","ARIOSY SADIA RESWARA",8,757],["FTTH REGULER","Jawa Tengah","Telawa","ARIOSY SADIA RESWARA",8,462],["FTTH REGULER","Jawa Tengah","Tugu Jogja","CAKRAWALA SOLUSI NUSANTARA",8,40],["FTTH REGULER","Jawa Tengah","Tugu Jogja","SEMESTA ENERGI SERVICES",8,40],["FTTH REGULER","Jawa Tengah","Ujungnegoro","MIGE TAMA SINERGI",8,184],["FTTH REGULER","Jawa Tengah","Wadu","DAKSA KARYA TEKNOLOGI",8,156],["FTTH REGULER","Jawa Tengah","Wadu","DESNARUM JAYA AKASHA",8,404],["FTTH REGULER","Jawa Tengah","Waleri","DESNARUM JAYA AKASHA",8,84],["FTTH REGULER","Jawa Tengah","Wates","JAMBON ELEKTRIK UTAMA",8,96],["FTTH REGULER","Jawa Tengah","Weleri","CYNET INDONESIA NETWORK",8,40],["FTTH REGULER","Jawa Tengah","Weleri","DESNARUM JAYA AKASHA",8,167],["FTTH REGULER","Jawa Tengah","Weleri","KOPNATEL JAYA",8,40],["FTTH REGULER","Jawa Tengah","Wojo","JAMBON ELEKTRIK UTAMA",8,82],["FTTH REGULER","Jawa Tengah","Wonogiri","GOLDEN NETWORK NUSANTARA",8,320],["FTTH REGULER","Jawa Tengah","Wonogiri","STEP POINT INDONESIA",8,80],["FTTH REGULER","Jawa Tengah","Wonogiri","TIRTAMAS BERKAH MULIA",8,74],["FTTH REGULER","Jawa Tengah","Wonosari","MATERIAL SUPPLY INDONESIA",8,395],["FTTH REGULER","Jawa Tengah","Wonosari","TIRTAMAS BERKAH MULIA",8,72],["FTTH REGULER","Jawa Timur","Argopuro","PERSONEL ALIH DAYA",8,97],["FTTH REGULER","Jawa Timur","Arjasa","TEKLING MEDIA TELEMATIKA",8,40],["FTTH REGULER","Jawa Timur","Babadan","MAWAH MITRA MANDIRI",8,168],["FTTH REGULER","Jawa Timur","Babat","ARIS INDOGAS",8,64],["FTTH REGULER","Jawa Timur","Babat","GERBANG NUSANTARA SAKTI",8,61],["FTTH REGULER","Jawa Timur","Bagor","PERSONEL ALIH DAYA",8,46],["FTTH REGULER","Jawa Timur","Bagor","SBAGJA TECH",8,40],["FTTH REGULER","Jawa Timur","Bangil","SALWA CITRA MANDIRI",8,1210],["FTTH REGULER","Jawa Timur","Bangsalsari","TEKLING MEDIA TELEMATIKA",8,40],["FTTH REGULER","Jawa Timur","Banyuwangi Kota","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Baron","AGUS JAYA TEKNIK",8,64],["FTTH REGULER","Jawa Timur","Baron","PUTRA TELEKOMUNIKASI INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Bayeman","NURIZ BERKAH ABADI",8,64],["FTTH REGULER","Jawa Timur","Benowo","SINAR MODERN",8,40],["FTTH REGULER","Jawa Timur","Blimbing","KHATULISTIWA JARINGAN NUSATECH",8,108],["FTTH REGULER","Jawa Timur","Blimbing","SALWA CITRA MANDIRI",8,104],["FTTH REGULER","Jawa Timur","Blitar","JAYAHANA MUNAURA MEKANIKA SELARAS",8,40],["FTTH REGULER","Jawa Timur","Boharan","KHATULISTIWA JARINGAN NUSATECH",8,64],["FTTH REGULER","Jawa Timur","Boharan","SENTRA ENERGI TEKNIK KOMUNIKASI",8,64],["FTTH REGULER","Jawa Timur","Bojonegoro","MITRA JAVA TECHNOLOGY",8,64],["FTTH REGULER","Jawa Timur","Bojonegoro","TEKKOMINDO KARYA WIJAYA",8,40],["FTTH REGULER","Jawa Timur","Bowerno","ADHI BIMA PARAMITHA",8,1498],["FTTH REGULER","Jawa Timur","Buduran","INTERNET ANAK BANGSA",8,40],["FTTH REGULER","Jawa Timur","Buduran","MEGA NETWORKING ABADI",8,64],["FTTH REGULER","Jawa Timur","Caruban","MADIUN AKSES TELEKOMUNIKASI",8,64],["FTTH REGULER","Jawa Timur","Caruban","MAWAH MITRA MANDIRI",8,384],["FTTH REGULER","Jawa Timur","Cerme","PRIMA AKSES SOLUSI GLOBAL",8,228],["FTTH REGULER","Jawa Timur","Curahmalang","KHATULISTIWA JARINGAN NUSATECH",8,64],["FTTH REGULER","Jawa Timur","Duduk","AZZAHRA RAJAWALI MAKMUR",8,40],["FTTH REGULER","Jawa Timur","Garahan","TEKLING MEDIA TELEMATIKA",8,40],["FTTH REGULER","Jawa Timur","Garum","DUTA ANUGRAH DAMAI SEJAHTERA",8,825],["FTTH REGULER","Jawa Timur","Gedangan","DARIA PRATAMA MANDIRI",8,66],["FTTH REGULER","Jawa Timur","Gedangan","GUMILANG NUSANTARA ABADI",8,40],["FTTH REGULER","Jawa Timur","Gembong","PRIMA AKSES SOLUSI GLOBAL",8,64],["FTTH REGULER","Jawa Timur","Geneng","KHATULISTIWA JARINGAN NUSATECH",8,356],["FTTH REGULER","Jawa Timur","Geneng","MAWAH MITRA MANDIRI",8,104],["FTTH REGULER","Jawa Timur","Glenmore","SINERGI MULTILINK INDONESIA",8,40],["FTTH REGULER","Jawa Timur","Jatiroto","SEMERU AGUNG MANDIRI",8,444],["FTTH REGULER","Jawa Timur","Jember","PUTRA TELEKOMUNIKASI INDONESIA",8,40],["FTTH REGULER","Jawa Timur","Jember","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Jombang","DUTA ANUGRAH DAMAI SEJAHTERA",8,545],["FTTH REGULER","Jawa Timur","Kalibaru","KESHAVA MULTI INTER MEDIA",8,61],["FTTH REGULER","Jawa Timur","Kalisetail","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Kalitidu","GERBANG NUSANTARA SAKTI",8,416],["FTTH REGULER","Jawa Timur","Kandangan","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jawa Timur","Kandangan","FIBEART TRANS NETWORK_SURABAYA_ST-KANDANGAN",8,1],["FTTH REGULER","Jawa Timur","Kapas","PRIMA AKSES SOLUSI GLOBAL",8,128],["FTTH REGULER","Jawa Timur","Kedinding","EL-KOKAR TIMUR",8,40],["FTTH REGULER","Jawa Timur","Kediri","DIO PRATAMA",8,40],["FTTH REGULER","Jawa Timur","Kediri","DUTA ANUGRAH DAMAI SEJAHTERA",8,628],["FTTH REGULER","Jawa Timur","Kediri","JAYAHANA MUNAURA MEKANIKA SELARAS",8,64],["FTTH REGULER","Jawa Timur","Kedunggalar","MAWAH MITRA MANDIRI",8,317],["FTTH REGULER","Jawa Timur","Kepanjen","DUTA ANUGRAH DAMAI SEJAHTERA",8,310],["FTTH REGULER","Jawa Timur","Kepanjen","PUTRA TELEKOMUNIKASI INDONESIA",8,40],["FTTH REGULER","Jawa Timur","Kepanjen","XAPIENS TEKNOLOGI INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Kertomenanggal","MEGA NETWORKING ABADI",8,64],["FTTH REGULER","Jawa Timur","Kertosono","DUTA ANUGRAH DAMAI SEJAHTERA",8,704],["FTTH REGULER","Jawa Timur","Kesamben","PUTRA TELEKOMUNIKASI INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Ketapang","KESHAVA MULTI INTER MEDIA",8,7],["FTTH REGULER","Jawa Timur","Ketapang","ULTRA MANDIRI TEKNOLOGI",8,55],["FTTH REGULER","Jawa Timur","Klakah","SEMERU AGUNG MANDIRI",8,232],["FTTH REGULER","Jawa Timur","Kras","TULUNGAGUNG NET",8,64],["FTTH REGULER","Jawa Timur","Krian","CIPTA AKSES INDOTAMA",8,63],["FTTH REGULER","Jawa Timur","Krian","DARIA PRATAMA MANDIRI",8,196],["FTTH REGULER","Jawa Timur","Lamongan","DUTA ANUGRAH DAMAI SEJAHTERA",8,40],["FTTH REGULER","Jawa Timur","Lawang","DARIA PRATAMA MANDIRI",8,64],["FTTH REGULER","Jawa Timur","Leces","NURIZ BERKAH ABADI",8,72],["FTTH REGULER","Jawa Timur","Madiun","KHATULISTIWA JARINGAN NUSATECH",8,422],["FTTH REGULER","Jawa Timur","Magetan","BAHTERA PINTAS UTAMA",8,71],["FTTH REGULER","Jawa Timur","Magetan","KHATULISTIWA JARINGAN NUSATECH",8,356],["FTTH REGULER","Jawa Timur","Magetan","LINGKUP TOTAL TECHNOLOGY",8,652],["FTTH REGULER","Jawa Timur","Malang","DUTA ANUGRAH DAMAI SEJAHTERA",8,628],["FTTH REGULER","Jawa Timur","Malang","KHATULISTIWA JARINGAN NUSATECH",8,192],["FTTH REGULER","Jawa Timur","Malang","LINGKUP TOTAL TECHNOLOGY",8,336],["FTTH REGULER","Jawa Timur","Malang Kota Lama","KHATULISTIWA JARINGAN NUSATECH",8,221],["FTTH REGULER","Jawa Timur","Malang Kota Lama","LINGKUP TOTAL TECHNOLOGY",8,192],["FTTH REGULER","Jawa Timur","Malang Kota Lama","SALWA CITRA MANDIRI",8,121],["FTTH REGULER","Jawa Timur","Mangli","INFRA SEKAWAN TELEKOMUNIKASI",8,64],["FTTH REGULER","Jawa Timur","Margorejo","SINAR MODERN",8,40],["FTTH REGULER","Jawa Timur","Minggiran","LINGKUP TOTAL TECHNOLOGY",8,1276],["FTTH REGULER","Jawa Timur","Mojokerto","DAVON MEDIA TEKNOLOGI",8,40],["FTTH REGULER","Jawa Timur","Mojokerto","DUTA ANUGRAH DAMAI SEJAHTERA",8,772],["FTTH REGULER","Jawa Timur","Mojokerto","JANUR KUNING SENTOSA",8,72],["FTTH REGULER","Jawa Timur","Mrawan","KESHAVA MULTI INTER MEDIA",8,40],["FTTH REGULER","Jawa Timur","Ngadiluwih","JAYAHANA MUNAURA MEKANIKA SELARAS",8,21],["FTTH REGULER","Jawa Timur","Ngadiluwih","LINGKUP TOTAL TECHNOLOGY",8,695],["FTTH REGULER","Jawa Timur","Ngagel","SINAR MODERN",8,64],["FTTH REGULER","Jawa Timur","Nganjuk","DUTA ANUGRAH DAMAI SEJAHTERA",8,284],["FTTH REGULER","Jawa Timur","Nganjuk","JAYAHANA MUNAURA MEKANIKA SELARAS",8,130],["FTTH REGULER","Jawa Timur","Nganjuk","LINGKUP TOTAL TECHNOLOGY",8,697],["FTTH REGULER","Jawa Timur","Ngawi","MADIUN AKSES TELEKOMUNIKASI",8,64],["FTTH REGULER","Jawa Timur","Ngebruk","INFRA SEKAWAN TELEKOMUNIKASI",8,104],["FTTH REGULER","Jawa Timur","Ngujang","TULUNGAGUNG NET",8,64],["FTTH REGULER","Jawa Timur","Ngunut","KOPERASI PEGAWAI TELKOM MALANG KOPEGTEL",8,64],["FTTH REGULER","Jawa Timur","Pagerwojo","SINAR MODERN",8,40],["FTTH REGULER","Jawa Timur","Pakisaji","GARUDA MITRA SOLUSI",8,64],["FTTH REGULER","Jawa Timur","Papar","ANUGRAH SUKSES ABADI COMMUNICATION",8,40],["FTTH REGULER","Jawa Timur","Papar","LINGKUP TOTAL TECHNOLOGY",8,700],["FTTH REGULER","Jawa Timur","Pasuruan","KHATULISTIWA JARINGAN NUSATECH",8,452],["FTTH REGULER","Jawa Timur","Pasuruan","TURANDI MITRA HANDAL",8,64],["FTTH REGULER","Jawa Timur","Peterongan","PULINTA KARYA UTAMA",8,424],["FTTH REGULER","Jawa Timur","Porong","DUA PUTRA AKAS SEJAHTERA",8,68],["FTTH REGULER","Jawa Timur","Probolinggo","DUTA ANUGRAH DAMAI SEJAHTERA",8,276],["FTTH REGULER","Jawa Timur","Probolinggo","STEP POINT INDONESIA",8,74],["FTTH REGULER","Jawa Timur","Pucuk","PRIMA AKSES SOLUSI GLOBAL",8,40],["FTTH REGULER","Jawa Timur","Purwoasri","MATERIAL SUPPLY INDONESIA",8,104],["FTTH REGULER","Jawa Timur","Purwoasri","TIRTAMAS BERKAH MULIA",8,77],["FTTH REGULER","Jawa Timur","Rambipuji","INFRA SEKAWAN TELEKOMUNIKASI",8,104],["FTTH REGULER","Jawa Timur","Rambipuji","PUTRA TELEKOMUNIKASI INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Randuagung","DUTA ANUGRAH DAMAI SEJAHTERA",8,402],["FTTH REGULER","Jawa Timur","Rejoso","GERBANG NUSANTARA SAKTI",8,60],["FTTH REGULER","Jawa Timur","Rejoso","TURANDI MITRA HANDAL",8,104],["FTTH REGULER","Jawa Timur","Rejotangan","JAYAHANA MUNAURA MEKANIKA SELARAS",8,332],["FTTH REGULER","Jawa Timur","Rogojampi","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Saradan","BAHTERA PINTAS UTAMA",8,70],["FTTH REGULER","Jawa Timur","Saradan","MADIUN AKSES TELEKOMUNIKASI",8,40],["FTTH REGULER","Jawa Timur","Sembung","DAYA KARYA MANDIRI",8,192],["FTTH REGULER","Jawa Timur","Sembung","SATYA JALA MANDIRI",8,67],["FTTH REGULER","Jawa Timur","Sempolan","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Sengon","DARIA PRATAMA MANDIRI",8,259],["FTTH REGULER","Jawa Timur","Sepanjang","SIMBIKA TEKNOLOGI SOLUSI",8,64],["FTTH REGULER","Jawa Timur","Sidoarjo","DAYA KARYA MANDIRI",8,64],["FTTH REGULER","Jawa Timur","Sidoarjo","DUTA ANUGRAH DAMAI SEJAHTERA",8,624],["FTTH REGULER","Jawa Timur","Sidoarjo","KALYANA MITRA LESTARI",8,40],["FTTH REGULER","Jawa Timur","Sidoarjo","KHATULISTIWA JARINGAN NUSATECH",8,339],["FTTH REGULER","Jawa Timur","Sidoarjo","STEP POINT INDONESIA",8,237],["FTTH REGULER","Jawa Timur","Singojuruh","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Singosari","KHARISMA ELSYADAI SUKSES ABADI",8,487],["FTTH REGULER","Jawa Timur","Singosari","KHATULISTIWA JARINGAN NUSATECH",8,308],["FTTH REGULER","Jawa Timur","Singosari","PANDU SATRIA WICAKSANA",8,576],["FTTH REGULER","Jawa Timur","Sroyo","PRIMA AKSES SOLUSI GLOBAL",8,317],["FTTH REGULER","Jawa Timur","Sukomoro","FIBER PULSE NETWORK",8,64],["FTTH REGULER","Jawa Timur","Sukomoro","SATYA JALA MANDIRI",8,65],["FTTH REGULER","Jawa Timur","Sumbergempol","KOPERASI PEGAWAI TELKOM MALANG",8,128],["FTTH REGULER","Jawa Timur","Sumberpucung","INTERNET ANAK BANGSA",8,64],["FTTH REGULER","Jawa Timur","Sumberrejo","GERBANG NUSANTARA SAKTI",8,416],["FTTH REGULER","Jawa Timur","Sumberwadung","GIGA DATACOM",8,40],["FTTH REGULER","Jawa Timur","Sumobito","PULINTA KARYA UTAMA",8,479],["FTTH REGULER","Jawa Timur","Surabaya Gubeng","DUTA ANUGRAH DAMAI SEJAHTERA",8,720],["FTTH REGULER","Jawa Timur","Surabaya Gubeng","KHATULISTIWA JARINGAN NUSATECH",8,296],["FTTH REGULER","Jawa Timur","Surabaya Gubeng","SINAR MODERN",8,40],["FTTH REGULER","Jawa Timur","Surabaya Kota","OPMC INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Surabaya Pasar Turi","KHATULISTIWA JARINGAN NUSATECH",8,200],["FTTH REGULER","Jawa Timur","Surabayan","PERSONEL ALIH DAYA",8,63],["FTTH REGULER","Jawa Timur","Susuhan","LINGKUP TOTAL TECHNOLOGY",8,304],["FTTH REGULER","Jawa Timur","Talun","XAPIENS TEKNOLOGI INDONESIA",8,64],["FTTH REGULER","Jawa Timur","Tandes","FIBEART TRANS NETWORK",8,40],["FTTH REGULER","Jawa Timur","Tandes","KHATULISTIWA JARINGAN NUSATECH",8,168],["FTTH REGULER","Jawa Timur","Tanggul","SEMERU AGUNG MANDIRI",8,64],["FTTH REGULER","Jawa Timur","Tanggulangin","KHARISMA ELSYADAI SUKSES ABADI",8,360],["FTTH REGULER","Jawa Timur","Tarik","DUTA ANUGRAH DAMAI SEJAHTERA",8,387],["FTTH REGULER","Jawa Timur","Temuguruh","RAMA MULTIGUNA ADIKARYA",8,40],["FTTH REGULER","Jawa Timur","Tulangan","CIPTA AKSES INDOTAMA",8,40],["FTTH REGULER","Jawa Timur","Tulangan","SIMBIKA TEKNOLOGI SOLUSI",8,64],["FTTH REGULER","Jawa Timur","Tulungagung","DUTA ANUGRAH DAMAI SEJAHTERA",8,627],["FTTH REGULER","Jawa Timur","Tulungagung","DUTA ANUGRAH DAMAI SEJAHTERA",16,1],["FTTH REGULER","Jawa Timur","Tulungagung","FOTON INFO SISTEM",8,631],["FTTH REGULER","Jawa Timur","Tulungagung","HAYOOKERJA ABHINAYA INDONESIA",8,4],["FTTH REGULER","Jawa Timur","Tulungagung","JAYAHANA MUNAURA MEKANIKA SELARAS",8,40],["FTTH REGULER","Jawa Timur","Walikukun","MAWAH MITRA MANDIRI",8,448],["FTTH REGULER","Jawa Timur","Waru","KHATULISTIWA JARINGAN NUSATECH",8,272],["FTTH REGULER","Jawa Timur","Waru","MEGA NETWORKING ABADI",8,80],["FTTH REGULER","Jawa Timur","Waru","STEP POINT INDONESIA",8,40],["FTTH REGULER","Jawa Timur","Wlingi","DELAPAN UNSUR INTI TAMA",8,183],["FTTH REGULER","Jawa Timur","Wlingi","XAPIENS TEKNOLOGI INDONESIA",8,1],["FTTH REGULER","Jawa Timur","Wonokromo","ANUGRAH SUKSES ABADI COMMUNICATION",8,64],["FTTH REGULER","Jawa Timur","Wonokromo","EL-KOKAR TIMUR",8,40],["FTTH REGULER","Jawa Timur","Wonokromo","JARING INFRASTRUKTUR NASIONAL",8,40],["FTTH REGULER","Jawa Timur","Wonokromo","KHATULISTIWA JARINGAN NUSATECH",8,64],["FTTH REGULER","Tidak diketahui","Tidak diketahui","ON CHECK IT",8,1],["PARTNERSHIP","Jabodetabek Banten","Bekasi","ASIANET_VAYA CIPTA MANDIRI",1,2],["PARTNERSHIP","Jabodetabek Banten","Bekasi","ASIANET_VAYA CIPTA MANDIRI",2,1],["PARTNERSHIP","Jabodetabek Banten","Bekasi","ASIANET_VAYA CIPTA MANDIRI",8,49],["PARTNERSHIP","Jabodetabek Banten","Bekasi","ASIANET_VAYA CIPTA MANDIRI",9,1],["PARTNERSHIP","Jabodetabek Banten","Bekasi","ICONPLUS_VAYA CIPTA MANDIRI",8,11],["PARTNERSHIP","Jabodetabek Banten","Sudimara","JEJARING SOLUSI NUSANTARA",8,621],["PARTNERSHIP","Jabodetabek Banten","Sudimara","JEJARING SOLUSI NUSANTARA",16,63],["PARTNERSHIP","Jawa Barat","Cicalengka","TOWER BERSAMA GROUP",8,1],["PARTNERSHIP","Jawa Barat","Cicalengka","TOWER BERSAMA GROUP",16,341],["PARTNERSHIP","Jawa Barat","Cirebon","TOWER BERSAMA GROUP",8,2],["PARTNERSHIP","Jawa Barat","Cirebon","TOWER BERSAMA GROUP",16,1405],["PARTNERSHIP","Jawa Barat","Cirebon","TOWER BERSAMA GROUP",18,1],["PARTNERSHIP","Jawa Tengah","Comal","TOWER BERSAMA GROUP",16,61],["PARTNERSHIP","Jawa Tengah","Pemalang","TOWER BERSAMA GROUP",16,675],["PARTNERSHIP","Tidak diketahui","Tidak diketahui","LINKNET WEAVE",2,1]]};
+const LS_KEY = 'odp-homepass-dashboard-v1';
+const UNK = 'Tidak diketahui';
+const KNOWN = {'FTTH REGULER':1,'AKUSISI ISP':2,'BACKBONE PERCEPATAN':3,'PARTNERSHIP':4,'FTTH KALIMANTAN':5};
+const BUCKETS = [{c:'--p1',l:'8 port'},{c:'--p2',l:'16 port'},{c:'--p3',l:'32 port atau lebih'},{c:'--p4',l:'Lainnya (di bawah 8, 9–15, 17–31)'}];
+const bucketOf = p => p===8?0 : p===16?1 : p>=32?2 : 3;
+const $ = s => document.querySelector(s);
+const fmt = n => Math.round(n).toLocaleString('id-ID');
+const fmtD = (n,d=2) => n.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct = n => fmtD(n*100,1)+'%';
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let data = null, origin = 'base';
+const F = {region:'',vendor:''};
+let M = 'hp';
+let segColor = new Map(), segOrder = [], regionList = [], vendorList = [];
+let notice = null; // {kind, html}
+
+/* ---------- data prep ---------- */
+function prepare(d){
+  const tot = new Map(), reg = new Map(), ven = new Set();
+  d.rows.forEach(r=>{
+    const h = r[4]*r[5];
+    tot.set(r[0],(tot.get(r[0])||0)+h);
+    reg.set(r[1],(reg.get(r[1])||0)+h);
+    ven.add(r[3]);
+  });
+  segOrder = [...tot.keys()].sort((a,b)=>tot.get(b)-tot.get(a));
+  segColor = new Map(); const used = new Set();
+  segOrder.forEach(s=>{const k=KNOWN[s.toUpperCase()]; if(k){segColor.set(s,k);used.add(k);}});
+  let n = 1;
+  segOrder.forEach(s=>{
+    if(segColor.has(s)) return;
+    while(used.has(n) && n<8) n++;
+    segColor.set(s,n); used.add(n);
+  });
+  regionList = [...reg.keys()].sort((a,b)=>reg.get(b)-reg.get(a));
+  vendorList = [...ven].sort((a,b)=>a.localeCompare(b));
+  if(F.region && !reg.has(F.region)) F.region='';
+  if(F.vendor && !ven.has(F.vendor)) F.vendor='';
+}
+const col = s => 'var(--s'+(segColor.get(s)||8)+')';
+const sIdx = s => segOrder.indexOf(s);
+
+function compute(){
+  const C = {odp:0,hp:0,stas:new Set(),vend:new Set(),seg:new Map(),reg:new Map(),sta:new Map(),ven:new Map()};
+  const add = (m,k,s,n,h)=>{
+    let o = m.get(k); if(!o){o=new Map();m.set(k,o);}
+    let x = o.get(s); if(!x){x={odp:0,hp:0};o.set(s,x);}
+    x.odp+=n; x.hp+=h;
+  };
+  for(const r of data.rows){
+    if(F.region && r[1]!==F.region) continue;
+    if(F.vendor && r[3]!==F.vendor) continue;
+    const n=r[5], h=r[4]*r[5];
+    C.odp+=n; C.hp+=h; C.stas.add(r[2]); C.vend.add(r[3]);
+    let g = C.seg.get(r[0]); if(!g){g={odp:0,hp:0,b:[0,0,0,0]};C.seg.set(r[0],g);}
+    g.odp+=n; g.hp+=h; g.b[bucketOf(r[4])]+=n;
+    add(C.reg,r[1],r[0],n,h); add(C.sta,r[2],r[0],n,h); add(C.ven,r[3],r[0],n,h);
+  }
+  C.segs = segOrder.filter(s=>C.seg.has(s));
+  return C;
+}
+
+/* ---------- renderers ---------- */
+function renderMeta(){
+  const m = data.meta;
+  const bits = [];
+  bits.push('<span>File: <b>'+esc(m.file)+'</b></span>');
+  if(m.sheet) bits.push('<span>Sheet: <b>'+esc(m.sheet)+'</b></span>');
+  bits.push('<span>Baris data: <b class="num">'+fmt(m.odpRows)+'</b></span>');
+  bits.push('<span>'+(origin==='base'?'Data awal':'Diunggah: <b>'+esc(m.at||'')+'</b>')+'</span>');
+  if(m.dup) bits.push('<span>Duplikat ODP ID diabaikan: <b class="num">'+fmt(m.dup)+'</b></span>');
+  if(m.invalid) bits.push('<span>Baris port kosong/tidak valid dilewati: <b class="num">'+fmt(m.invalid)+'</b></span>');
+  $('#meta').innerHTML = bits.join('');
+  $('#btn-reset').hidden = origin==='base';
+  const st = $('#status');
+  if(notice){
+    const ic = notice.kind==='ok' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+      : notice.kind==='err' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>'
+      : '<span class="spin"></span>';
+    st.className = 'st st-'+(notice.kind==='ok'?'ok':notice.kind==='err'?'err':'load');
+    st.innerHTML = ic+'<div>'+notice.html+'</div>';
+    st.hidden = false;
+  } else { st.hidden = true; }
+}
+
+function renderFilters(){
+  const r = $('#f-region'), v = $('#f-vendor');
+  r.innerHTML = '<option value="">Semua region</option>'+regionList.map(x=>'<option'+(x===F.region?' selected':'')+' value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  v.innerHTML = '<option value="">Semua vendor</option>'+vendorList.map(x=>'<option'+(x===F.vendor?' selected':'')+' value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  $('#btn-clear').hidden = !(F.region||F.vendor);
+}
+
+function renderKPI(C){
+  const avg = C.odp ? C.hp/C.odp : 0;
+  $('#kpis').innerHTML =
+    '<div class="card kpi hero"><span class="lab">Total homepass</span><span class="val">'+fmt(C.hp)+'</span><span class="sub">ODP × port, semua segment</span></div>'+
+    '<div class="card kpi"><span class="lab">Total ODP</span><span class="val">'+fmt(C.odp)+'</span><span class="sub">'+fmt(C.segs.length)+' segment aktif</span></div>'+
+    '<div class="card kpi"><span class="lab">Rata-rata port per ODP</span><span class="val">'+fmtD(avg)+'</span><span class="sub">Homepass ÷ ODP</span></div>'+
+    '<div class="card kpi"><span class="lab">Stasiun</span><span class="val">'+fmt(C.stas.size)+'</span><span class="sub">'+fmt(C.vend.size)+' vendor</span></div>';
+}
+
+function renderSegCards(C){
+  if(!C.segs.length){ $('#segs').innerHTML='<div class="card empty" style="grid-column:1/-1">Tidak ada data untuk filter ini.</div>'; return; }
+  $('#segs').innerHTML = C.segs.map(s=>{
+    const g = C.seg.get(s), share = C.hp? g.hp/C.hp : 0;
+    return '<article class="card seg">'+
+      '<header><i class="sw" style="background:'+col(s)+'"></i><h3>'+esc(s)+'</h3><span class="pct">'+pct(share)+'</span></header>'+
+      '<div class="hp"><span class="lab">Homepass</span><b>'+fmt(g.hp)+'</b></div>'+
+      '<div class="eq"><b>'+fmt(g.odp)+'</b> ODP × <b>'+fmtD(g.odp?g.hp/g.odp:0)+'</b> port</div>'+
+      '<div class="share" title="Porsi dari total homepass"><i style="width:'+(share*100)+'%;background:'+col(s)+'"></i></div>'+
+    '</article>';
+  }).join('');
+}
+
+function simpleBars(C,key,id,unit){
+  if(!C.segs.length){ $(id).innerHTML='<div class="empty">Tidak ada data.</div>'; return; }
+  const max = Math.max(...C.segs.map(s=>C.seg.get(s)[key]));
+  $(id).innerHTML = C.segs.map(s=>{
+    const v = C.seg.get(s)[key], g=C.seg.get(s);
+    const tip = s+'\nODP: '+fmt(g.odp)+'\nHomepass: '+fmt(g.hp)+'\nPort rata-rata: '+fmtD(g.odp?g.hp/g.odp:0);
+    return '<div class="row"><div class="lbl">'+esc(s)+'</div>'+
+      '<div class="track"><div class="bar" style="width:'+(max?v/max*100:0)+'%"><span tabindex="0" data-tip="'+esc(tip)+'" style="flex-grow:1;background:'+col(s)+'"></span></div></div>'+
+      '<div class="val">'+fmt(v)+'</div></div>';
+  }).join('');
+}
+
+function renderMix(C){
+  $('#lg-port').innerHTML = BUCKETS.map(b=>'<span><i style="background:var('+b.c+')"></i>'+b.l+'</span>').join('');
+  if(!C.segs.length){ $('#c-mix').innerHTML='<div class="empty">Tidak ada data.</div>'; return; }
+  $('#c-mix').innerHTML = C.segs.map(s=>{
+    const g = C.seg.get(s);
+    const parts = g.b.map((n,i)=>n>0?'<span tabindex="0" data-tip="'+esc(s+'\n'+BUCKETS[i].l+'\n'+fmt(n)+' ODP ('+pct(n/g.odp)+')')+'" style="flex-grow:'+n+';background:var('+BUCKETS[i].c+')"></span>':'').join('');
+    return '<div class="row"><div class="lbl">'+esc(s)+'</div><div class="track"><div class="bar full">'+parts+'</div></div>'+
+      '<div class="val" title="Rata-rata port per ODP">'+fmtD(g.odp?g.hp/g.odp:0)+'</div></div>';
+  }).join('');
+}
+
+function stackRows(map,limit){
+  let arr = [...map].map(([k,m])=>{
+    const parts = [...m].map(([s,v])=>({s,v:v[M],odp:v.odp,hp:v.hp})).filter(p=>p.v>0).sort((a,b)=>sIdx(a.s)-sIdx(b.s));
+    const tot = parts.reduce((a,p)=>a+p.v,0);
+    const odp = parts.reduce((a,p)=>a+p.odp,0), hp = parts.reduce((a,p)=>a+p.hp,0);
+    return {k,parts,tot,odp,hp};
+  }).filter(r=>r.tot>0).sort((a,b)=>b.tot-a.tot);
+  return limit? arr.slice(0,limit) : arr;
+}
+function renderStack(id,map,limit){
+  const rows = stackRows(map,limit);
+  if(!rows.length){ $(id).innerHTML='<div class="empty">Tidak ada data.</div>'; return; }
+  const max = rows[0].tot;
+  $(id).innerHTML = rows.map(r=>{
+    const parts = r.parts.map(p=>{
+      const tip = p.s+' · '+r.k+'\nHomepass: '+fmt(p.hp)+'\nODP: '+fmt(p.odp)+'\n'+pct(p.v/r.tot)+' dari '+(M==='hp'?'homepass':'ODP')+' '+r.k;
+      return '<span tabindex="0" data-tip="'+esc(tip)+'" style="flex-grow:'+p.v+';background:'+col(p.s)+'"></span>';
+    }).join('');
+    return '<div class="row"><div class="lbl" title="'+esc(r.k)+'">'+esc(r.k)+'</div>'+
+      '<div class="track"><div class="bar" style="width:'+(r.tot/max*100)+'%">'+parts+'</div></div>'+
+      '<div class="val">'+fmt(r.tot)+'</div></div>';
+  }).join('');
+}
+
+function renderLegendSeg(C){
+  $('#lg-seg').innerHTML = C.segs.map(s=>'<span><i style="background:'+col(s)+'"></i>'+esc(s)+'</span>').join('');
+}
+
+function renderMatrix(C){
+  const regs = regionList.filter(r=>C.reg.has(r));
+  if(!C.segs.length){ $('#matrix').innerHTML='<tbody><tr><td class="muted">Tidak ada data untuk filter ini.</td></tr></tbody>'; return; }
+  const cell = (o)=> o&&o.odp ? '<b>'+fmt(o.hp)+'</b><small>'+fmt(o.odp)+' ODP</small>' : '<span class="muted">–</span>';
+  let h = '<thead><tr><th>Segment</th>'+regs.map(r=>'<th>'+esc(r)+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  C.segs.forEach(s=>{
+    h += '<tr><td><i class="sw" style="background:'+col(s)+'"></i>'+esc(s)+'</td>'+regs.map(r=>'<td>'+cell(C.reg.get(r).get(s))+'</td>').join('')+'<td>'+cell(C.seg.get(s))+'</td></tr>';
+  });
+  h += '</tbody><tfoot><tr><td>Total</td>'+regs.map(r=>{
+    let o=0,p=0; C.reg.get(r).forEach(v=>{o+=v.odp;p+=v.hp;}); return '<td><b>'+fmt(p)+'</b><small>'+fmt(o)+' ODP</small></td>';
+  }).join('')+'<td><b>'+fmt(C.hp)+'</b><small>'+fmt(C.odp)+' ODP</small></td></tr></tfoot>';
+  $('#matrix').innerHTML = h;
+}
+
+function render(){
+  const C = compute();
+  renderMeta(); renderFilters(); renderKPI(C); renderSegCards(C);
+  simpleBars(C,'odp','#c-odp'); simpleBars(C,'hp','#c-hp');
+  renderMix(C); renderLegendSeg(C);
+  renderStack('#c-reg',C.reg,0); renderStack('#c-sta',C.sta,10); renderStack('#c-ven',C.ven,10);
+  const u = M==='hp'?'Jumlah homepass':'Jumlah ODP';
+  $('#t-reg').textContent = u+' per region, dipecah menurut segment';
+  $('#t-sta').textContent = u+' per stasiun, dipecah menurut segment';
+  $('#t-ven').textContent = u+' per vendor, dipecah menurut segment';
+  $('#m-hp').setAttribute('aria-pressed',M==='hp'); $('#m-odp').setAttribute('aria-pressed',M==='odp');
+  renderMatrix(C);
+}
+
+/* ---------- storage ---------- */
+function loadStored(){
+  try{
+    const s = localStorage.getItem(LS_KEY); if(!s) return null;
+    const o = JSON.parse(s);
+    if(o && o.meta && Array.isArray(o.rows) && o.rows.length && o.rows[0].length===6) return o;
+  }catch(e){}
+  return null;
+}
+function store(o){ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); return true; }catch(e){ return false; } }
+function clearStore(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+
+/* ---------- upload / parse ---------- */
+function parseWorkbook(wb){
+  const norm = v => String(v==null?'':v).toLowerCase().replace(/[\s_]+/g,' ').trim();
+  for(const name of wb.SheetNames){
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:null,blankrows:false});
+    let hi=-1, ix=null;
+    for(let i=0;i<Math.min(aoa.length,15);i++){
+      const h = (aoa[i]||[]).map(norm);
+      const iSeg=h.indexOf('segment'), iPort=h.indexOf('port');
+      if(iSeg>=0 && iPort>=0){
+        hi=i; ix={seg:iSeg,port:iPort,odp:h.findIndex(x=>x==='odp id'||x==='odp'),reg:h.indexOf('region'),sta:h.indexOf('stasiun'),ven:h.findIndex(x=>x.indexOf('vendor')===0)};
+        break;
+      }
+    }
+    if(hi<0) continue;
+    const agg = new Map(), seen = ix.odp>=0 ? new Set() : null;
+    let dup=0, invalid=0, used=0;
+    const txt = (r,i)=>{ if(i<0) return UNK; const v=r[i]; if(v==null) return UNK; const t=String(v).trim(); return t||UNK; };
+    for(let i=hi+1;i<aoa.length;i++){
+      const r = aoa[i]; if(!r) continue;
+      let p = r[ix.port];
+      if(typeof p!=='number') p = parseFloat(String(p==null?'':p).replace(',','.'));
+      if(!isFinite(p) || p<=0){ invalid++; continue; }
+      if(seen){
+        const id = r[ix.odp]==null ? null : String(r[ix.odp]).trim();
+        if(id){ if(seen.has(id)){dup++;continue;} seen.add(id); }
+      }
+      const seg=txt(r,ix.seg), key=[seg,txt(r,ix.reg),txt(r,ix.sta),txt(r,ix.ven),p].join('\u0001');
+      agg.set(key,(agg.get(key)||0)+1); used++;
+    }
+    if(!used) throw new Error('Sheet "'+name+'" tidak berisi baris ODP yang valid.');
+    const rows = [...agg].map(([k,n])=>{const a=k.split('\u0001'); return [a[0],a[1],a[2],a[3],Number(a[4]),n];});
+    return {sheet:name,rows,odpRows:used,dup,invalid};
+  }
+  throw new Error('Kolom "Segment" dan "port" tidak ditemukan di sheet mana pun. Pastikan baris judul memuat kedua nama kolom itu.');
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const btn = $('#btn-pick'); btn.disabled = true;
+  notice = {kind:'load',html:'Membaca <b>'+esc(file.name)+'</b>. File besar bisa butuh beberapa detik.'};
+  renderMeta();
+  await new Promise(r=>setTimeout(r,40));
+  try{
+    if(typeof XLSX==='undefined') throw new Error('Pustaka pembaca Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf,{type:'array',dense:true,cellFormula:false,cellHTML:false,cellStyles:false,cellText:false,cellNF:false});
+    const res = parseWorkbook(wb);
+    const at = new Date().toLocaleString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    data = {meta:{file:file.name,sheet:res.sheet,odpRows:res.odpRows,dup:res.dup,invalid:res.invalid,at},rows:res.rows};
+    origin = 'upload';
+    const saved = store(data);
+    prepare(data);
+    notice = {kind:'ok',html:'Data diperbarui dari <b>'+esc(file.name)+'</b>: '+fmt(res.odpRows)+' ODP dibaca.'+(saved?' Tersimpan di browser ini.':' Tidak bisa disimpan di browser ini, data hilang saat halaman ditutup.')};
+  }catch(err){
+    notice = {kind:'err',html:'Gagal membaca file. '+esc(err && err.message ? err.message : 'Format tidak dikenali.')+' Data sebelumnya tetap dipakai.'};
+  }finally{
+    btn.disabled = false; $('#file').value='';
+    render();
+  }
+}
+
+
+/* ---------- download excel ---------- */
+let DL = null;
+function buildWorkbook(){
+  const rows = data.rows.filter(r=>(!F.region||r[1]===F.region)&&(!F.vendor||r[3]===F.vendor));
+  const segT = new Map(), segR = new Map();
+  let odp=0, hp=0;
+  rows.forEach(r=>{
+    const n=r[5], h=r[4]*n; odp+=n; hp+=h;
+    const a = segT.get(r[0])||{odp:0,hp:0}; a.odp+=n; a.hp+=h; segT.set(r[0],a);
+    const k = r[0]+'\u0001'+r[1]; const b = segR.get(k)||{s:r[0],g:r[1],odp:0,hp:0}; b.odp+=n; b.hp+=h; segR.set(k,b);
+  });
+  const segs = segOrder.filter(s=>segT.has(s));
+  const rIdx = g=>{const i=regionList.indexOf(g); return i<0?999:i;};
+  const m = data.meta;
+  const info = [
+    ['Dashboard ODP & Homepass'],[],
+    ['File sumber', m.file],
+    ['Sheet sumber', m.sheet||'-'],
+    ['Data', origin==='base'?'Data awal':'Diunggah '+(m.at||'')],
+    ['Diekspor', new Date().toLocaleString('id-ID')],
+    ['Filter region', F.region||'Semua region'],
+    ['Filter vendor', F.vendor||'Semua vendor'],
+    ['Total ODP', odp],
+    ['Total homepass', hp],[],
+    ['Catatan','Homepass = jumlah port semua ODP. Sheet Data Agregat berisi jumlah ODP untuk tiap kombinasi segment, region, stasiun, vendor, dan ukuran port.']
+  ];
+  const sum = [['Segment','Jumlah ODP','Rata-rata port per ODP','Homepass','% Homepass']];
+  segs.forEach(s=>{const g=segT.get(s); sum.push([s,g.odp,g.odp?Math.round(g.hp/g.odp*100)/100:0,g.hp,hp?g.hp/hp:0]);});
+  sum.push(['Total',odp,odp?Math.round(hp/odp*100)/100:0,hp,hp?1:0]);
+  const sr = [['Segment','Region','Jumlah ODP','Homepass']];
+  [...segR.values()].sort((a,b)=>sIdx(a.s)-sIdx(b.s)||rIdx(a.g)-rIdx(b.g)).forEach(x=>sr.push([x.s,x.g,x.odp,x.hp]));
+  const det = [['Segment','Region','Stasiun','Vendor','Port per ODP','Jumlah ODP','Homepass']];
+  rows.slice().sort((a,b)=>sIdx(a[0])-sIdx(b[0])||rIdx(a[1])-rIdx(b[1])||a[2].localeCompare(b[2])||a[3].localeCompare(b[3])||a[4]-b[4])
+    .forEach(r=>det.push([r[0],r[1],r[2],r[3],r[4],r[5],r[4]*r[5]]));
+  const wb = XLSX.utils.book_new();
+  const add = (name,aoa,wch)=>{const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=wch.map(w=>({wch:w})); XLSX.utils.book_append_sheet(wb,ws,name); return ws;};
+  add('Info',info,[18,70]);
+  const ws2 = add('Ringkasan Segment',sum,[26,14,22,16,13]);
+  for(let i=2;i<=sum.length;i++){ const c=ws2['E'+i]; if(c) c.z='0.0%'; }
+  add('Segment x Region',sr,[26,22,14,16]);
+  add('Data Agregat',det,[24,22,28,40,14,12,14]);
+  return wb;
+}
+async function downloadExcel(){
+  if(!DL) return;
+  try{
+    if(typeof XLSX==='undefined') throw {code:'noxlsx'};
+    const out = XLSX.write(buildWorkbook(),{bookType:'xlsx',type:'array'});
+    const d = new Date(), p = n=>String(n).padStart(2,'0');
+    const name = 'odp-homepass_'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+((F.region||F.vendor)?'_filter':'')+'.xlsx';
+    await DL.save({filename:name,data:new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})});
+    notice = {kind:'ok',html:'File Excel <b>'+esc(name)+'</b> siap disimpan.'};
+  }catch(e){
+    const c = e && e.code;
+    if(c==='declined') return;
+    const msg = c==='noxlsx' ? 'Pustaka Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.'
+      : c==='host_unavailable' ? 'Aplikasi ini tidak bisa menyimpan file. Buka dashboard di browser atau komputer.'
+      : c==='rate_limited' ? 'Tunggu sebentar, lalu coba unduh lagi.'
+      : 'File Excel tidak bisa disimpan.';
+    notice = {kind:'err',html:msg};
+  }
+  render();
+}
+
+/* ---------- events ---------- */
+const dz = $('#dropzone');
+$('#btn-pick').addEventListener('click',()=>$('#file').click());
+$('#file').addEventListener('change',e=>handleFile(e.target.files[0]));
+$('#btn-reset').addEventListener('click',()=>{
+  clearStore(); data = BASE; origin='base'; prepare(data);
+  notice = {kind:'ok',html:'Kembali memakai data awal.'}; render();
+});
+['dragenter','dragover'].forEach(t=>window.addEventListener(t,e=>{e.preventDefault(); if(e.dataTransfer && [...e.dataTransfer.types||[]].indexOf('Files')>=0) dz.classList.add('drag');}));
+['dragleave','drop'].forEach(t=>window.addEventListener(t,e=>{e.preventDefault(); if(t==='drop'||e.target===document.documentElement||!e.relatedTarget) dz.classList.remove('drag');}));
+window.addEventListener('drop',e=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) handleFile(f); });
+$('#f-region').addEventListener('change',e=>{F.region=e.target.value;render();});
+$('#f-vendor').addEventListener('change',e=>{F.vendor=e.target.value;render();});
+$('#btn-dl').addEventListener('click',downloadExcel);
+$('#btn-clear').addEventListener('click',()=>{F.region='';F.vendor='';render();});
+$('#m-hp').addEventListener('click',()=>{M='hp';render();});
+$('#m-odp').addEventListener('click',()=>{M='odp';render();});
+
+/* tooltip */
+const tip = $('#tip');
+function showTip(el,x,y){
+  const lines = el.getAttribute('data-tip').split('\n');
+  tip.innerHTML = '<strong>'+esc(lines[0])+'</strong>'+esc(lines.slice(1).join('\n'));
+  tip.classList.add('on');
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let px = x+14, py = y+14;
+  if(px+w > innerWidth-8) px = Math.max(8,x-w-14);
+  if(py+h > innerHeight-8) py = Math.max(8,y-h-14);
+  tip.style.left = px+'px'; tip.style.top = py+'px';
+}
+function hideTip(){ tip.classList.remove('on'); }
+['pointermove','pointerdown'].forEach(t=>document.addEventListener(t,e=>{
+  const el = e.target.closest && e.target.closest('[data-tip]');
+  if(el) showTip(el,e.clientX,e.clientY); else hideTip();
+}));
+document.addEventListener('focusin',e=>{ const el=e.target.closest&&e.target.closest('[data-tip]'); if(el){const r=el.getBoundingClientRect(); showTip(el,r.left+r.width/2,r.top);} });
+document.addEventListener('focusout',hideTip);
+document.addEventListener('scroll',hideTip,true);
+
+/* ---------- boot ---------- */
+try{
+  if(window.claude && typeof window.claude.use==='function'){
+    window.claude.use('downloads').then(d=>{ if(d){ DL=d; $('#btn-dl').hidden=false; } }).catch(()=>{});
+  }
+}catch(e){}
+const stored = loadStored();
+if(stored){ data = stored; origin = 'upload'; } else { data = BASE; origin = 'base'; }
+prepare(data);
+render();
+})();
+</script>
+
+</body></html>
